@@ -84,7 +84,21 @@ This file provides package-level identity. Update it to match the current versio
 }
 ```
 
-## Step 4: Generate the ZIP
+## Step 4: Delete old ZIP versions
+
+**CRITICAL:** Before generating the new ZIP, delete any existing ZIP files for this app to avoid clutter:
+
+```bash
+cd <domain>/<isv-name>/
+rm -f <appName>-v*.zip
+```
+
+This ensures:
+- Only the latest version is in the repository
+- No confusion about which ZIP is current
+- Clean git status
+
+## Step 5: Generate the ZIP
 
 Run from the **parent directory** of the app folder so the root entry is `commerce-<appName>-app-v<version>/`:
 
@@ -101,7 +115,7 @@ Verify the ZIP:
    - No `.DS_Store`, `__MACOSX`, or hidden files
    - No duplicate directory trees
 
-## Step 5: Compute SHA256 hash
+## Step 6: Compute SHA256 hash
 
 Generate the hash for the ZIP:
 
@@ -111,7 +125,7 @@ shasum -a 256 <domain>/<isv-name>/<appName>-v<version>.zip
 
 Copy the hex digest (the long string before the filename).
 
-## Step 6: Update root manifest
+## Step 7: Update root manifest
 
 **CRITICAL:** Update the root manifest at `commerce-apps-manifest/manifest.json`:
 
@@ -154,7 +168,7 @@ Supported `subDomain` values: `giftCards`, `ratingsAndReviews`, `loyalty`, `sear
 **For new apps:** Add a new entry to the appropriate domain array.
 **For updates:** Update the existing entry's `version`, `zip`, and `sha256` fields.
 
-## Step 7: Handle catalog.json
+## Step 8: Handle catalog.json
 
 - **Existing app**: Do not modify `catalog.json` — CI updates it on merge.
 - **Brand new app**: Create `catalog.json` next to the ZIP:
@@ -169,7 +183,7 @@ Supported `subDomain` values: `giftCards`, `ratingsAndReviews`, `loyalty`, `sear
 }
 ```
 
-## Step 8: Final validation checklist
+## Step 9: Final validation checklist
 
 - [ ] ZIP name matches `<appName>-v<version>.zip`
 - [ ] ZIP contains a single root folder `commerce-<appName>-app-v<version>/`
@@ -179,7 +193,7 @@ Supported `subDomain` values: `giftCards`, `ratingsAndReviews`, `loyalty`, `sear
 - [ ] `sha256` in root manifest matches the actual ZIP hash
 - [ ] `catalog.json` included only for brand new apps
 
-## Step 9: Clean up extracted directory
+## Step 10: Clean up extracted directory
 
 After generating the ZIP, delete the extracted directory (it should NOT be committed):
 

@@ -211,8 +211,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for complete submission requirements and 
 4. Create `manifest.json` with all required fields (name, displayName, domain, description, version, zip, sha256)
 5. Create `catalog.json` with INIT placeholder (new apps only)
 6. Place files at `{domain}/{isv-name}/` (e.g., `tax/avalara/` or `additionalFeature/bazaarvoice/`)
-7. Commit ONLY the ZIP, manifest.json, and catalog.json (do NOT commit extracted directories)
-8. Open a PR
+7. Delete old ZIP versions: `rm -f {app-name}-v*.zip` (keep only the latest version)
+8. Commit ONLY the ZIP, manifest.json, and catalog.json (do NOT commit extracted directories)
+9. Open a PR
 
 **CI Validation:** Validates ZIP structure, manifest format, and SHA256 hash. On merge, creates a Git tag and updates the catalog automatically.
 

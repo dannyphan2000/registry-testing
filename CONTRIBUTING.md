@@ -99,6 +99,30 @@ Get-ChildItem -Path ".\folder_name" -Recurse -File | Where-Object {
 - `Where-Object`: This acts as a filter. We tell it to only keep files that do not match our "junk" patterns (no .DS_Store, no __MACOSX, no files starting with a dot, and no Thumbs.db).
 - `Compress-Archive`: Takes that filtered list and zips it up.
 
+#### Delete Old ZIP Versions
+
+**CRITICAL:** Before committing a new version, delete any existing ZIP files for your app:
+
+```bash
+cd {domain}/{isv-name}/
+rm -f {appName}-v*.zip  # Remove all old versions
+```
+
+**Why this matters:**
+- Keeps the repository clean and focused on the latest version
+- Prevents confusion about which version is current
+- Reduces repository size
+- Ensures clean git status for PR review
+
+**What to keep:**
+- ✅ Only the latest ZIP version (e.g., `avalara-tax-v1.0.0.zip`)
+- ✅ `catalog.json` (managed by CI)
+
+**What to delete:**
+- ❌ All previous ZIP versions (e.g., `avalara-tax-v0.9.9.zip`)
+
+The CI workflow on the main branch maintains historical versions, so old ZIPs are not needed in PRs or the repository.
+
 ---
 
 ### 2. Update Root Manifest
