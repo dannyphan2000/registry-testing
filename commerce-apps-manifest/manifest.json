@@ -80,7 +80,7 @@
     "additionalFeature": [
         {
             "id": "salesforce-gift-cards",
-            "name": "Salesforce Gift Cards",
+            "name": "Gift Cards",
             "description": "Enable gift card purchasing, redemption, and balance management.",
             "iconName": "salesforce.svg",
             "domain": "additionalFeature",
@@ -88,6 +88,18 @@
             "provider": "salesforce",
             "version": "0.0.1",
             "zip": "salesforce-gift-cards-v0.0.1.zip",
+            "sha256": "a76c3079cdfb15e9e405ac12b8e64b277b76461f8aa2afd77c96ce9606c38d68"
+        },
+        {
+            "id": "adyen-gift-cards",
+            "name": "Gift Cards",
+            "description": "Enable gift card purchasing, redemption, and balance management.",
+            "iconName": "salesforce.svg",
+            "domain": "additionalFeature",
+            "type": "app",
+            "provider": "thirdParty",
+            "version": "0.0.1",
+            "zip": "adyen-gift-cards-v0.0.1.zip",
             "sha256": "a76c3079cdfb15e9e405ac12b8e64b277b76461f8aa2afd77c96ce9606c38d68"
         }
     ]
