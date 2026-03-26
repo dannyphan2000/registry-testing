@@ -130,13 +130,19 @@ payment/
     ├── manifest.json
     └── catalog.json
 
-additionalFeature/
-├── bazaarvoice/
-│   ├── bazaarvoice-ratings-v1.0.0.zip
+gift-cards/
+├── salesforce-gift-cards/
+│   ├── salesforce-gift-cards-v0.0.1.zip
 │   ├── manifest.json
 │   └── catalog.json
-└── salesforce-gift-cards/
-    ├── salesforce-gift-cards-v0.0.1.zip
+└── adyen-gift-cards/
+    ├── adyen-gift-cards-v0.0.1.zip
+    ├── manifest.json
+    └── catalog.json
+
+ratings-and-reviews/
+└── bazaarvoice/
+    ├── bazaarvoice-ratings-v1.0.0.zip
     ├── manifest.json
     └── catalog.json
 ```
@@ -145,28 +151,20 @@ additionalFeature/
 
 ### Domains
 
-There are four domains. Every app's `domain` field must be one of these:
+Every app's `domain` field must be one of these. Domains use hyphen-case. Provider domains (`tax`, `payment`, `shipping`) show under "Providers" on the checkout hub; all other domains show under "Additional Setup".
 
-| Domain | Description | Example Apps |
-|--------|-------------|--------------|
-| `tax` | Tax calculation and compliance | Avalara, Vertex |
-| `payment` | Payment processing | Stripe, Adyen, PayPal |
-| `shipping` | Shipping and fulfillment | ShipStation, EasyPost |
-| `additionalFeature` | All other checkout capabilities (see sub-domains) | Gift Cards, Reviews, Loyalty |
-
-### Sub-domains (for `additionalFeature`)
-
-Apps with `domain: "additionalFeature"` must include a `subDomain` field that groups them under a single hub tile. Multiple providers sharing the same `subDomain` appear as options within that tile.
-
-| Sub-domain | Description | Example Apps |
-|------------|-------------|--------------|
-| `giftCards` | Gift card purchasing, redemption, and balance | Salesforce Gift Cards, Adyen Gift Cards |
-| `ratingsAndReviews` | Product ratings and reviews | Bazaarvoice, Yotpo, PowerReviews |
-| `loyalty` | Loyalty programs and rewards | LoyaltyLion, Smile.io |
-| `search` | Search and merchandising | Algolia, Elasticsearch |
-| `addressVerification` | Address validation and standardization | Smarty, Google Address Validation |
-| `analytics` | Analytics and reporting | Google Analytics, Segment |
-| `approachingDiscounts` | Approaching discount notifications | Salesforce Approaching Discounts |
+| Domain | Section | Description | Example Apps |
+|--------|---------|-------------|--------------|
+| `tax` | Providers | Tax calculation and compliance | Avalara, Vertex |
+| `payment` | Providers | Payment processing | Stripe, Adyen, PayPal |
+| `shipping` | Providers | Shipping and fulfillment | ShipStation, EasyPost |
+| `gift-cards` | Additional Setup | Gift card purchasing, redemption, and balance | Salesforce Gift Cards, Adyen Gift Cards |
+| `ratings-and-reviews` | Additional Setup | Product ratings and reviews | Bazaarvoice, Yotpo, PowerReviews |
+| `loyalty` | Additional Setup | Loyalty programs and rewards | LoyaltyLion, Smile.io |
+| `search` | Additional Setup | Search and merchandising | Algolia, Elasticsearch |
+| `address-verification` | Additional Setup | Address validation and standardization | Smarty, Google Address Validation |
+| `analytics` | Additional Setup | Analytics and reporting | Google Analytics, Segment |
+| `approaching-discounts` | Additional Setup | Approaching discount notifications | Salesforce Approaching Discounts |
 
 ## Tech Stack
 
@@ -210,7 +208,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for complete submission requirements and 
 3. Generate SHA256 hash: `shasum -a 256 my-app-v1.0.0.zip`
 4. Create `manifest.json` with all required fields (name, displayName, domain, description, version, zip, sha256)
 5. Create `catalog.json` with INIT placeholder (new apps only)
-6. Place files at `{domain}/{isv-name}/` (e.g., `tax/avalara/` or `additionalFeature/bazaarvoice/`)
+6. Place files at `{domain}/{isv-name}/` (e.g., `tax/avalara/` or `ratings-and-reviews/bazaarvoice/`)
 7. Commit ONLY the ZIP, manifest.json, and catalog.json (do NOT commit extracted directories)
 8. Open a PR
 
