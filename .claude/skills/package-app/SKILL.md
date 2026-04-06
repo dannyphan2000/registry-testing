@@ -241,7 +241,68 @@ Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`
 **For new apps:** Add a new entry to the appropriate domain array.
 **For updates:** Update the existing entry's `version`, `zip`, and `sha256` fields.
 
-## Step 9: Handle catalog.json
+## Step 9: Copy app icon to manifest icons directory
+
+**CRITICAL:** Copy the app icon to the shared icons directory:
+
+1. Locate the icon in the extracted app directory:
+   ```bash
+   ls commerce-<appName>-app-v<version>/icons/
+   ```
+
+2. Copy to commerce-apps-manifest/icons/ with the correct naming:
+   ```bash
+   cp commerce-<appName>-app-v<version>/icons/* commerce-apps-manifest/icons/<iconName>.png
+   ```
+   
+   Where `<iconName>` matches the `iconName` field in root manifest (typically `<appName>.png`)
+
+3. Verify icon was copied:
+   ```bash
+   ls -lh commerce-apps-manifest/icons/<iconName>.png
+   ```
+
+**Icon requirements:**
+- Format: PNG (recommended) or SVG
+- Size: 512x512px recommended for PNG
+- Naming: Must match `iconName` field in root manifest
+- **Required:** All apps must have an icon before submission
+
+## Step 10: Add translations to manifest
+
+**CRITICAL:** Add app name and description translations to ALL locale files in `commerce-apps-manifest/translations/`:
+
+For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, ko.json, nl.json, pl.json, pt.json, zh_CN.json, zh_TW.json, ar_MA.json):
+
+1. Read the locale file:
+   ```bash
+   cat commerce-apps-manifest/translations/en-US.json
+   ```
+
+2. Add your app's translation entry (use jq or manual edit):
+   ```bash
+   jq '. + {"<appName>": {"name": "<displayName>", "description": "<description>"}}' \
+     commerce-apps-manifest/translations/en-US.json > temp.json && \
+     mv temp.json commerce-apps-manifest/translations/en-US.json
+   ```
+
+3. Repeat for all locale files (at minimum, update en-US.json)
+
+**Translation structure:**
+```json
+{
+  "<appName>": {
+    "name": "<displayName>",
+    "description": "<description>"
+  }
+}
+```
+
+**Best practice:** For non-English locales, either:
+- Provide translated name/description
+- Use English values as fallback (better than missing entry)
+
+## Step 11: Handle catalog.json
 
 - **Existing app**: Do not modify `catalog.json` — CI updates it on merge.
 - **Brand new app**: Create `catalog.json` next to the ZIP:
@@ -256,7 +317,7 @@ Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`
 }
 ```
 
-## Step 10: Final validation checklist
+## Step 12: Final validation checklist
 
 **All architectures:**
 - [ ] ZIP name matches `<appName>-v<version>.zip`
@@ -266,6 +327,8 @@ Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`
 - [ ] `app-configuration/tasksList.json` exists with merchant post-installation tasks
 - [ ] `commerce-apps-manifest/manifest.json` is updated with correct version and hash
 - [ ] `sha256` in root manifest matches the actual ZIP hash
+- [ ] **App icon copied to `commerce-apps-manifest/icons/<iconName>.png`**
+- [ ] **Translations added to all locale files in `commerce-apps-manifest/translations/`** (at minimum en-US.json)
 - [ ] `catalog.json` included only for brand new apps
 - [ ] Architecture detected correctly (UI-only, Backend-only, or Fullstack)
 
@@ -280,7 +343,7 @@ Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`
 - [ ] `impex/install/` directory exists
 - [ ] `impex/uninstall/` directory exists for cleanup
 
-## Step 11: Clean up extracted directory
+## Step 13: Clean up extracted directory
 
 After generating the ZIP, delete the extracted directory (it should NOT be committed):
 
@@ -296,7 +359,14 @@ rm -rf commerce-<appName>-app-v<version>/
 └── catalog.json                  ✅ COMMIT (new apps only)
 
 commerce-apps-manifest/
-└── manifest.json                 ✅ COMMIT (updated entry)
+├── manifest.json                 ✅ COMMIT (updated entry)
+├── icons/
+│   └── <iconName>.png            ✅ COMMIT (app icon)
+└── translations/
+    ├── en-US.json                ✅ COMMIT (updated with app entry)
+    ├── de.json                   ✅ COMMIT (updated with app entry)
+    ├── fr.json                   ✅ COMMIT (updated with app entry)
+    └── ... (all locale files)    ✅ COMMIT (updated with app entry)
 ```
 
 **What should NOT be committed:**
