@@ -47,6 +47,18 @@
         {
           "name": "verifies package.json has hooks field",
           "description": "Cartridge package.json must include 'hooks' field"
+        },
+        {
+          "name": "validates icon exists in commerce-apps-manifest/icons/",
+          "description": "App icon must be present in shared icons directory"
+        },
+        {
+          "name": "validates icon filename matches manifest",
+          "description": "Icon filename must match iconName field in root manifest"
+        },
+        {
+          "name": "validates translations in en-US.json",
+          "description": "App entry must exist in commerce-apps-manifest/translations/en-US.json with name and description"
         }
       ]
     },

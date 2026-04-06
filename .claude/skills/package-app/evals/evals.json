@@ -41,6 +41,14 @@
           "description": "Updates commerce-apps-manifest/manifest.json"
         },
         {
+          "name": "copies icon to commerce-apps-manifest/icons/",
+          "description": "App icon copied from app to shared icons directory"
+        },
+        {
+          "name": "adds translations to all locale files",
+          "description": "App name and description added to commerce-apps-manifest/translations/"
+        },
+        {
           "name": "deletes extracted directory after packaging",
           "description": "Cleans up commerce-avalara-tax-app-v0.2.8/ folder"
         },
@@ -88,6 +96,14 @@
         {
           "name": "verifies tasksList.json in ZIP",
           "description": "Merchant post-installation checklist present"
+        },
+        {
+          "name": "copies icon to commerce-apps-manifest/icons/",
+          "description": "App icon copied to shared icons directory"
+        },
+        {
+          "name": "adds translations to locale files",
+          "description": "App entry added to commerce-apps-manifest/translations/"
         }
       ]
     },
@@ -133,6 +149,14 @@
         {
           "name": "verifies tasksList.json includes both UI and backend tasks",
           "description": "Merchant checklist covers both architectures"
+        },
+        {
+          "name": "copies icon to commerce-apps-manifest/icons/",
+          "description": "App icon copied to shared icons directory"
+        },
+        {
+          "name": "updates all translation files",
+          "description": "App name/description added to all locale files"
         }
       ]
     },
@@ -195,6 +219,14 @@
         {
           "name": "verifies architecture-specific structure",
           "description": "Detects and validates correct architecture"
+        },
+        {
+          "name": "copies icon to commerce-apps-manifest/icons/",
+          "description": "New app icon added to shared icons directory"
+        },
+        {
+          "name": "adds translations for new app",
+          "description": "New app entry added to all translation files"
         }
       ]
     },

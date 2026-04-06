@@ -137,122 +137,50 @@ Extract and read `commerce-<appName>-app-v<version>/commerce-app.json`:
 
 **Skip this step if Backend-only architecture.**
 
-Extract and validate Storefront Next extension files:
+Extract and validate Storefront Next extension at `storefront-next/src/extensions/<appName>/`:
 
-### Extension Structure Validation
+**Extension structure:**
+- [ ] `target-config.json` with valid `components` array (targetId, path, order)
+- [ ] `index.ts` barrel file exports all public components/hooks/providers
+- [ ] All three required locales: `locales/en-US/`, `en-GB/`, `it-IT/` with translations.json
 
-**target-config.json:**
-- [ ] File exists at `storefront-next/src/extensions/<appName>/target-config.json`
-- [ ] Contains `components` array with valid targetIds
-- [ ] Each component has `targetId`, `path`, and `order` fields
-- [ ] Paths point to existing .tsx files (check ZIP contents)
-- [ ] If providers used, `contextProviders` array present
-
-**index.ts barrel file:**
-- [ ] File exists at `storefront-next/src/extensions/<appName>/index.ts`
-- [ ] Exports all public components, hooks, and providers
-
-### TypeScript Files Validation
-
-Check all .ts/.tsx files in `storefront-next/src/extensions/<appName>/`:
-
-- [ ] All files use TypeScript (.ts or .tsx, not .js)
-- [ ] All files start with Apache 2.0 copyright header
-- [ ] All component files include `'use client'` directive (after copyright, before imports)
+**TypeScript files (.ts/.tsx):**
+- [ ] Apache 2.0 copyright header (first thing in file)
+- [ ] `'use client'` directive (after copyright, before imports)
+- [ ] Use inline type imports: `import React, { type ReactElement }`
 - [ ] Components use default export
-- [ ] Use `import type` for TypeScript types (not mixed imports)
 
-### Localization Validation
-
-**Required locales:**
-- [ ] `locales/en-US/translations.json` exists
-- [ ] `locales/en-GB/translations.json` exists
-- [ ] `locales/it-IT/translations.json` exists
-- [ ] All three locales have identical key structures
-- [ ] Translation keys use camelCase (no underscores)
-
-### Component Quality Checks
-
-- [ ] No hardcoded English strings (must use `useTranslation()`)
-- [ ] No hardcoded Tailwind color classes (use `@theme` variables)
-- [ ] No console.log statements
+**Code quality:**
+- [ ] No hardcoded strings (use `useTranslation()`)
+- [ ] No hardcoded Tailwind colors (use `@theme` variables)
+- [ ] No `console.log` statements
 - [ ] No array indices as React keys
-- [ ] Components don't import from `react` and `import type` separately (use inline `type`)
 
 ## Step 8: Validate impex files (Backend-only and Fullstack apps only)
 
 **Skip this step if UI-only architecture.**
 
-Extract the ZIP and validate all impex XML files for correctness:
+Extract the ZIP and run comprehensive impex validation:
 
-### XML Syntax Validation
-
-Validate all XML files are well-formed:
 ```bash
 find commerce-<appName>-app-v<version>/impex/ -name "*.xml" -exec xmllint --noout {} \;
 ```
 
-### Services Validation
+For detailed validation rules, read `references/impex-validation.md` which covers:
+- Services XML (install/uninstall pairs, credentials, timeouts)
+- Site preferences (metadata, attribute naming, data types)
+- Custom objects (key attributes, storage scope, retention)
+- Cross-file validation (ID matching between install/uninstall)
+- Common errors (XML encoding, naming conventions)
 
-**Install file (`impex/install/services.xml`):**
-- [ ] XML namespace is `http://www.demandware.com/xml/impex/services/2015-07-01`
-- [ ] All service IDs use dotted notation (e.g., `vendor.service.api`)
-- [ ] All services reference valid credentials and profiles
-- [ ] No hardcoded production credentials or secrets
-- [ ] Timeouts are reasonable (5000-60000 ms)
-- [ ] Rate limiting configured for external APIs
+**Key checks:**
+- [ ] All XML files pass xmllint validation
+- [ ] Services use dotted notation, no hardcoded credentials
+- [ ] Install/uninstall service IDs match exactly
+- [ ] Attribute IDs use camelCase with app-name prefixes
+- [ ] SITEID placeholder used in preferences (not actual site ID)
 
-**Uninstall file (`impex/uninstall/services.xml`):**
-- [ ] All services use `mode="delete"`
-- [ ] Deletion order: service → profile → credential
-- [ ] All service/profile/credential IDs match install file exactly
-
-### Site Preferences Validation
-
-**Metadata file (`impex/install/meta/system-objecttype-extensions.xml`):**
-- [ ] XML namespace is `http://www.demandware.com/xml/impex/metadata/2006-10-31`
-- [ ] All attribute IDs use camelCase (not snake_case)
-- [ ] All attribute IDs prefixed with app name
-- [ ] All attributes have display names and descriptions
-- [ ] Default values match data types
-- [ ] All attributes added to group definition
-- [ ] Valid attribute types used (string, boolean, integer, enum-of-string, etc.)
-
-**Preferences file (`impex/install/sites/SITEID/preferences.xml`):**
-- [ ] Uses `SITEID` placeholder (not actual site ID)
-- [ ] All preference IDs match attribute definitions
-- [ ] Default values match data types
-- [ ] No sensitive data (API keys, secrets)
-
-### Custom Objects Validation (if present)
-
-**Custom object definitions (`impex/install/meta/custom-objecttype-definitions.xml`):**
-- [ ] `key-attribute` defined and mandatory
-- [ ] Storage scope is `site` or `organization`
-- [ ] Retention policy set (0 or 1-365 days)
-- [ ] Valid staging mode (`no-sharing`, `shared`, or `source-to-target`)
-- [ ] All attributes added to group
-
-### Cross-File Validation
-
-Verify install/uninstall pairs match:
-```bash
-# Extract and compare service IDs
-grep 'service-id=' impex/install/services.xml | sed 's/.*service-id="\([^"]*\)".*/\1/' | sort > /tmp/install.txt
-grep 'service-id=' impex/uninstall/services.xml | sed 's/.*service-id="\([^"]*\)".*/\1/' | sort > /tmp/uninstall.txt
-diff /tmp/install.txt /tmp/uninstall.txt
-```
-
-### Common Impex Errors
-
-Check for these common issues:
-- [ ] No unescaped special characters (`&` → `&amp;`, `<` → `&lt;`, etc.)
-- [ ] No duplicate service/credential/profile IDs
-- [ ] Service IDs don't use underscores (use dots instead)
-- [ ] Attribute IDs don't use underscores (use camelCase)
-- [ ] All XML files are well-formed (no unclosed tags)
-
-If any impex validation fails, report specific issues with file paths and lines.
+Report specific file paths and line numbers for any failures.
 
 ## Step 9: Check for catalog.json
 
@@ -272,49 +200,79 @@ If any impex validation fails, report specific issues with file paths and lines.
     }
     ```
 
-## Step 10: Run final PR checklist
+## Step 10: Validate icon and translations in manifest
 
-From CONTRIBUTING.md:
+**CRITICAL:** Verify app icon and translations were added to commerce-apps-manifest directory.
 
-**Package Structure (All architectures):**
-- [ ] ZIP file name follows format: `<appName>-v<version>.zip`
-- [ ] ZIP contains no junk files (.DS_Store, __MACOSX, etc.)
-- [ ] No extracted directories are committed
-- [ ] All file paths are relative to app root (no absolute paths)
-- [ ] Architecture detected correctly (UI-only, Backend-only, or Fullstack)
+### Icon Validation
 
-**Manifest Validation (All architectures):**
-- [ ] Root manifest (commerce-apps-manifest/manifest.json) is updated
-- [ ] Root manifest entry has all required fields
-- [ ] version, zip, and sha256 in root manifest are correct
-- [ ] SHA256 hash matches the actual ZIP file
-- [ ] commerce-app.json version matches root manifest version
-- [ ] catalog.json is included for new apps only (with INIT values)
-- [ ] app-configuration/tasksList.json exists with merchant post-installation tasks
+1. Check root manifest for iconName:
+   ```bash
+   jq '.[] | .[] | select(.id == "<appName>") | .iconName' commerce-apps-manifest/manifest.json
+   ```
 
-**UI Validation (UI-only and Fullstack only):**
-- [ ] target-config.json with valid targetIds
-- [ ] All .ts/.tsx files have Apache 2.0 copyright headers
-- [ ] All components have 'use client' directive
-- [ ] All three required locales present (en-US, en-GB, it-IT)
-- [ ] No hardcoded strings (uses useTranslation)
-- [ ] No console.log statements
-- [ ] No hardcoded Tailwind colors
+2. Verify icon file exists:
+   ```bash
+   ls -lh commerce-apps-manifest/icons/<iconName>
+   ```
+   
+   - [ ] Icon file exists at `commerce-apps-manifest/icons/<iconName>`
+   - [ ] Icon filename matches `iconName` field in root manifest
+   - [ ] Icon is PNG (512x512px recommended) or SVG format
+   - [ ] Icon file size is reasonable (under 100KB for PNG, under 50KB for SVG)
 
-**Impex Validation (Backend-only and Fullstack only):**
-- [ ] All XML files are well-formed (pass xmllint validation)
-- [ ] Services have valid configuration and no hardcoded credentials
-- [ ] Install/uninstall services match exactly
-- [ ] Site preferences use camelCase and app-name prefixes
-- [ ] SITEID placeholder used (not actual site ID)
-- [ ] No sensitive data in impex files
-- [ ] Both install/ and uninstall/ directories present
+### Translation Validation
 
-**Backend Validation (Backend-only and Fullstack only):**
-- [ ] At least one cartridge with package.json containing "hooks" field
-- [ ] hooks.json uses explicit script paths
-- [ ] Hook implementations use require() not importPackage()
-- [ ] Hook implementations always return dw.system.Status
+1. Check if app entry exists in en-US.json (minimum requirement):
+   ```bash
+   jq '."<appName>"' commerce-apps-manifest/translations/en-US.json
+   ```
+
+2. Verify translation structure:
+   - [ ] App entry exists in `commerce-apps-manifest/translations/en-US.json`
+   - [ ] Entry has `name` field matching app display name
+   - [ ] Entry has `description` field matching app description
+   - [ ] Translation structure is valid JSON: `{"<appName>": {"name": "...", "description": "..."}}`
+
+3. Check other locale files (best practice):
+   ```bash
+   for locale in de fr es it ja ko nl pl pt zh_CN zh_TW ar_MA; do
+     jq '."<appName>"' commerce-apps-manifest/translations/${locale}.json
+   done
+   ```
+   
+   - [ ] App entry present in all 13 locale files (or at least en-US.json)
+   - [ ] All locale entries have identical structure (name and description fields)
+
+**Common issues:**
+- Missing icon file after packaging
+- Icon filename doesn't match root manifest `iconName` field
+- Translations not added to en-US.json (minimum requirement)
+- Translation entry has typos in app name key
+- Missing `name` or `description` fields in translation entries
+
+## Step 11: Run final PR checklist
+
+**All architectures:**
+- [ ] ZIP name: `<appName>-v<version>.zip`, no junk files, single root folder
+- [ ] SHA256 hash matches root manifest entry
+- [ ] commerce-app.json version matches root manifest
+- [ ] catalog.json included for new apps only (INIT values)
+- [ ] tasksList.json exists with merchant post-installation tasks
+- [ ] Icon in `commerce-apps-manifest/icons/<iconName>` (PNG 512x512px or SVG)
+- [ ] Translations in `commerce-apps-manifest/translations/en-US.json` (minimum)
+
+**UI-only or Fullstack:**
+- [ ] target-config.json with valid targetIds and paths
+- [ ] Apache 2.0 headers + 'use client' directives in all .ts/.tsx files
+- [ ] Three locales: en-US, en-GB, it-IT with translations.json
+- [ ] No hardcoded strings, colors, or console.log statements
+
+**Backend-only or Fullstack:**
+- [ ] All impex XML files pass xmllint validation
+- [ ] Services: no hardcoded credentials, install/uninstall pairs match
+- [ ] Site preferences: camelCase IDs with app prefix, SITEID placeholder
+- [ ] Cartridge package.json has "hooks" field, hooks.json uses explicit paths
 
 ## Report validation results
 
