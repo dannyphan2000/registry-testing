@@ -21,15 +21,17 @@ Gather or infer:
 - App name (e.g., `avalara-tax`)
 - Version to validate (or use latest ZIP in directory)
 
+**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. Installation URL: `https://raw.githubusercontent.com/{owner}/{repo}/{tag}/{domain}/{appName}/{zipFileName}`
+
 ## Step 2: Validate ZIP file exists
 
-Check that ZIP file exists at `<domain>/<isv-name>/<appName>-v<version>.zip`
+Check that ZIP file exists at `<domain>/<appName>/<appName>-v<version>.zip`
 
 ## Step 3: Compute and verify SHA256
 
 1. Compute SHA256 hash:
    ```bash
-   shasum -a 256 <domain>/<isv-name>/<appName>-v<version>.zip
+   shasum -a 256 <domain>/<appName>/<appName>-v<version>.zip
    ```
 
 2. Read the root manifest at `commerce-apps-manifest/manifest.json`
@@ -70,7 +72,7 @@ Extract and inspect the ZIP structure:
 
 1. List ZIP contents without extracting:
    ```bash
-   unzip -l <domain>/<isv-name>/<appName>-v<version>.zip
+   unzip -l <domain>/<appName>/<appName>-v<version>.zip
    ```
 
 2. Check for common issues:
@@ -200,26 +202,9 @@ Report specific file paths and line numbers for any failures.
     }
     ```
 
-## Step 10: Validate icon and translations in manifest
+## Step 10: Validate translations in manifest
 
-**CRITICAL:** Verify app icon and translations were added to commerce-apps-manifest directory.
-
-### Icon Validation
-
-1. Check root manifest for iconName:
-   ```bash
-   jq '.[] | .[] | select(.id == "<appName>") | .iconName' commerce-apps-manifest/manifest.json
-   ```
-
-2. Verify icon file exists:
-   ```bash
-   ls -lh commerce-apps-manifest/icons/<iconName>
-   ```
-   
-   - [ ] Icon file exists at `commerce-apps-manifest/icons/<iconName>`
-   - [ ] Icon filename matches `iconName` field in root manifest
-   - [ ] Icon is PNG (512x512px recommended) or SVG format
-   - [ ] Icon file size is reasonable (under 100KB for PNG, under 50KB for SVG)
+**CRITICAL:** Verify app translations were added to commerce-apps-manifest directory.
 
 ### Translation Validation
 
@@ -244,22 +229,46 @@ Report specific file paths and line numbers for any failures.
    - [ ] App entry present in all 13 locale files (or at least en-US.json)
    - [ ] All locale entries have identical structure (name and description fields)
 
+### Icon Validation
+
+Verify the app ZIP contains an icon that the CI workflow will extract:
+
+1. Check root manifest for iconName:
+   ```bash
+   jq '.[] | .[] | select(.id == "<appName>") | .iconName' commerce-apps-manifest/manifest.json
+   ```
+
+2. Verify icon exists and matches:
+   ```bash
+   # Get iconName from manifest
+   ICON_NAME=$(jq -r '.[] | .[] | select(.id == "<appName>") | .iconName' commerce-apps-manifest/manifest.json)
+   
+   # Check ZIP contains matching icon
+   unzip -l <domain>/<appName>/<appName>-v<version>.zip | grep "icons/$ICON_NAME"
+   ```
+   
+   - [ ] Icon file exists in ZIP's `icons/` directory
+   - [ ] Icon filename matches the `iconName` field in root manifest exactly
+   - [ ] Icon is PNG (512x512px recommended) or SVG format
+
+The CI workflow extracts icons from the ZIP by filename, so any mismatch will break icon references.
+
+
 **Common issues:**
-- Missing icon file after packaging
-- Icon filename doesn't match root manifest `iconName` field
-- Translations not added to en-US.json (minimum requirement)
-- Translation entry has typos in app name key
-- Missing `name` or `description` fields in translation entries
+- Translations not added to en-US.json
+- Icon filename doesn't match `iconName` in manifest
+- Icon missing from ZIP's `icons/` directory
 
 ## Step 11: Run final PR checklist
 
 **All architectures:**
+- [ ] App is located at `<domain>/<appName>/` where `<appName>` matches the "id" field in manifest.json
 - [ ] ZIP name: `<appName>-v<version>.zip`, no junk files, single root folder
 - [ ] SHA256 hash matches root manifest entry
 - [ ] commerce-app.json version matches root manifest
 - [ ] catalog.json included for new apps only (INIT values)
 - [ ] tasksList.json exists with merchant post-installation tasks
-- [ ] Icon in `commerce-apps-manifest/icons/<iconName>` (PNG 512x512px or SVG)
+- [ ] Icon exists in ZIP at `commerce-<appName>-app-v<version>/icons/` (CI will extract automatically)
 - [ ] Translations in `commerce-apps-manifest/translations/en-US.json` (minimum)
 
 **UI-only or Fullstack:**

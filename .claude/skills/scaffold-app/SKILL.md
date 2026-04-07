@@ -47,13 +47,14 @@ If the user's description clearly indicates type, proceed directly. Otherwise as
 
 **All apps need:**
 - Domain (tax, payment, shipping, gift-cards, ratings-and-reviews, loyalty, search, address-verification, analytics, approaching-discounts, fraud)
-- ISV/vendor name (lowercase-with-hyphens)
-- App name (kebab-case, unique identifier)
+- App name (kebab-case, unique identifier) - **CRITICAL:** This will be used as the folder name and must match the "id" field in manifest.json
 - Display name (human-readable with vendor)
 - Version (typically 1.0.0)
 - Description (one sentence)
 - Publisher name and URL
 - Additional context (optional - docs, requirements, API details)
+
+**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. Installation URL: `https://raw.githubusercontent.com/{owner}/{repo}/{tag}/{domain}/{appName}/{zipFileName}`
 
 **UI-only and Fullstack also need:**
 - **Target IDs:** Commerce apps typically span multiple UI targets (e.g., checkout flow + order summary + header). Ask which targets the app needs rather than assuming single-component usage. Common patterns:
@@ -72,14 +73,14 @@ UI-only apps skip cartridge/service questions since they don't need backend infr
 
 Use the creation script when available:
 ```bash
-bash scripts/create_structure.sh <domain> <isv> <appName> <version> <cartridgeName>
+bash scripts/create_structure.sh <domain> <appName> <appName> <version> <cartridgeName>
 ```
 
 Or create manually based on architecture:
 
 ```bash
-mkdir -p <domain>/<isv>/commerce-<appName>-app-v<version>
-cd <domain>/<isv>/commerce-<appName>-app-v<version>
+mkdir -p <domain>/<appName>/commerce-<appName>-app-v<version>
+cd <domain>/<appName>/commerce-<appName>-app-v<version>
 mkdir -p icons
 
 # All apps get these base directories
@@ -98,7 +99,7 @@ mkdir -p impex/{install/meta,install/sites/SITEID,uninstall}
 mkdir -p cartridges/bm_cartridges/bm_<appName>
 ```
 
-**Why this structure matters:** The app registry expects this specific layout. The domain/vendor nesting helps organize multiple apps, and the version in the directory name allows side-by-side development of updates.
+This structure enables the installation URL pattern and allows side-by-side development of different versions.
 
 ### 4. Generate Files
 
@@ -216,7 +217,7 @@ Check:
 Provide next steps:
 
 ```
-✅ App structure created at: <domain>/<isv>/commerce-<appName>-app-v<version>/
+✅ App structure created at: <domain>/<appName>/commerce-<appName>-app-v<version>/
 
 Next steps:
 1. **Review and customize app-configuration/tasksList.json** - update tasks to match your implementation
@@ -224,14 +225,14 @@ Next steps:
 3. {UI: Implement components | Backend: Implement hooks/helpers | Fullstack: Implement both}
 4. {Backend/Fullstack: Update service credentials and test with SFCC}
 5. Write tests
-6. **Add app icon to icons/ directory** (required before submission - PNG format, 512x512px recommended)
+6. **Add app icon to icons/ directory** (PNG 512x512px recommended). Icon filename becomes the `iconName` in root manifest (e.g., `icons/avalara.png` → `"iconName": "avalara.png"`)
 7. Use /package-app when ready
 8. Use /validate-app before submission
 9. Delete extracted directory before committing (commit only the ZIP)
 
 ⚠️  Only commit: <appName>-v<version>.zip, catalog.json (if new), and update commerce-apps-manifest/manifest.json
 
-Get started: cd <domain>/<isv>/commerce-<appName>-app-v<version>
+Get started: cd <domain>/<appName>/commerce-<appName>-app-v<version>
 {Backend/Fullstack: cd cartridges/site_cartridges/<cartridgeName> && npm install}
 
 📚 Related skills for implementation guidance:

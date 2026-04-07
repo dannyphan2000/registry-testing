@@ -31,13 +31,15 @@ Gather from the user (or infer from context):
 | Publisher name | `Avalara` | Yes |
 | Publisher URL | `https://developer.avalara.com/` | Yes |
 
+**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. Installation fetches from: `https://raw.githubusercontent.com/{owner}/{repo}/{tag}/{domain}/{appName}/{zipFileName}`
+
 ## Step 2: Check version and determine strategy
 
 **CRITICAL:** Before proceeding, check if this is a new app or an update to an existing app.
 
 1. **Check for existing catalog.json:**
    ```bash
-   cat <domain>/<isv-name>/catalog.json
+   cat <domain>/<appName>/catalog.json
    ```
 
 2. **Determine versioning strategy:**
@@ -72,7 +74,7 @@ The extracted app directory must be named `commerce-<appName>-app-v<version>/`.
 
 **Detect architecture type:**
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 
 # Check for storefront-next
 HAS_UI=$(find commerce-<appName>-app-v<version>/ -type d -name "storefront-next" | wc -l)
@@ -175,7 +177,7 @@ This file provides package-level identity. Update it to match the current versio
 **CRITICAL:** Before generating the new ZIP, delete any existing ZIP files for this app to avoid clutter:
 
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 rm -f <appName>-v*.zip
 ```
 
@@ -189,7 +191,7 @@ This ensures:
 Run from the **parent directory** of the app folder so the root entry is `commerce-<appName>-app-v<version>/`:
 
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 zip -r <appName>-v<version>.zip commerce-<appName>-app-v<version>/ \
   -x "*.DS_Store" -x "__MACOSX/*" -x "*/.*" -x "Thumbs.db"
 ```
@@ -210,7 +212,7 @@ Verify the ZIP:
 Generate the hash for the ZIP:
 
 ```bash
-shasum -a 256 <domain>/<isv-name>/<appName>-v<version>.zip
+shasum -a 256 <domain>/<appName>/<appName>-v<version>.zip
 ```
 
 Copy the hex digest (the long string before the filename).
@@ -236,39 +238,14 @@ Find the entry for your app in the appropriate domain array (e.g., `tax`, `payme
 }
 ```
 
+**Icon Name Matching:** The `iconName` field must match the actual icon filename in the ZIP's `icons/` directory (e.g., if ZIP contains `icons/avalara.png`, use `"iconName": "avalara.png"`). The CI workflow extracts icons by filename, so mismatches will break icon references.
+
 Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`, `loyalty`, `search`, `address-verification`, `analytics`, `approaching-discounts`, `fraud`.
 
 **For new apps:** Add a new entry to the appropriate domain array.
 **For updates:** Update the existing entry's `version`, `zip`, and `sha256` fields.
 
-## Step 9: Copy app icon to manifest icons directory
-
-**CRITICAL:** Copy the app icon to the shared icons directory:
-
-1. Locate the icon in the extracted app directory:
-   ```bash
-   ls commerce-<appName>-app-v<version>/icons/
-   ```
-
-2. Copy to commerce-apps-manifest/icons/ with the correct naming:
-   ```bash
-   cp commerce-<appName>-app-v<version>/icons/* commerce-apps-manifest/icons/<iconName>.png
-   ```
-   
-   Where `<iconName>` matches the `iconName` field in root manifest (typically `<appName>.png`)
-
-3. Verify icon was copied:
-   ```bash
-   ls -lh commerce-apps-manifest/icons/<iconName>.png
-   ```
-
-**Icon requirements:**
-- Format: PNG (recommended) or SVG
-- Size: 512x512px recommended for PNG
-- Naming: Must match `iconName` field in root manifest
-- **Required:** All apps must have an icon before submission
-
-## Step 10: Add translations to manifest
+## Step 9: Add translations to manifest
 
 **CRITICAL:** Add app name and description translations to ALL locale files in `commerce-apps-manifest/translations/`:
 
@@ -302,7 +279,7 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 - Provide translated name/description
 - Use English values as fallback (better than missing entry)
 
-## Step 11: Handle catalog.json
+## Step 10: Handle catalog.json
 
 - **Existing app**: Do not modify `catalog.json` — CI updates it on merge.
 - **Brand new app**: Create `catalog.json` next to the ZIP:
@@ -317,9 +294,10 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 }
 ```
 
-## Step 12: Final validation checklist
+## Step 11: Final validation checklist
 
 **All architectures:**
+- [ ] App is located at `<domain>/<appName>/` where `<appName>` matches the "id" field in manifest.json
 - [ ] ZIP name matches `<appName>-v<version>.zip`
 - [ ] ZIP contains a single root folder `commerce-<appName>-app-v<version>/`
 - [ ] No junk files (`.DS_Store`, `__MACOSX`, hidden files)
@@ -327,7 +305,8 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 - [ ] `app-configuration/tasksList.json` exists with merchant post-installation tasks
 - [ ] `commerce-apps-manifest/manifest.json` is updated with correct version and hash
 - [ ] `sha256` in root manifest matches the actual ZIP hash
-- [ ] **App icon copied to `commerce-apps-manifest/icons/<iconName>.png`**
+- [ ] **App icon exists in `commerce-<appName>-app-v<version>/icons/`** (CI will extract it automatically)
+- [ ] **Icon filename in ZIP matches the `iconName` field in root manifest exactly**
 - [ ] **Translations added to all locale files in `commerce-apps-manifest/translations/`** (at minimum en-US.json)
 - [ ] `catalog.json` included only for brand new apps
 - [ ] Architecture detected correctly (UI-only, Backend-only, or Fullstack)
@@ -343,31 +322,33 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 - [ ] `impex/install/` directory exists
 - [ ] `impex/uninstall/` directory exists for cleanup
 
-## Step 13: Clean up extracted directory
+## Step 12: Clean up extracted directory
 
 After generating the ZIP, delete the extracted directory (it should NOT be committed):
 
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 rm -rf commerce-<appName>-app-v<version>/
 ```
 
 **What should be in the repository:**
 ```
-<domain>/<isv-name>/
+<domain>/<appName>/
 ├── <appName>-v<version>.zip     ✅ COMMIT
 └── catalog.json                  ✅ COMMIT (new apps only)
 
 commerce-apps-manifest/
 ├── manifest.json                 ✅ COMMIT (updated entry)
 ├── icons/
-│   └── <iconName>.png            ✅ COMMIT (app icon)
+│   └── <iconName>.png            ✅ AUTO-GENERATED by CI (do NOT manually add)
 └── translations/
     ├── en-US.json                ✅ COMMIT (updated with app entry)
     ├── de.json                   ✅ COMMIT (updated with app entry)
     ├── fr.json                   ✅ COMMIT (updated with app entry)
     └── ... (all locale files)    ✅ COMMIT (updated with app entry)
 ```
+
+**Note on icons:** The `.github/workflows/update-catalog.yml` workflow automatically extracts icons from the ZIP file and adds them to `commerce-apps-manifest/icons/` when the PR is merged. Do NOT manually copy icons during packaging.
 
 **What should NOT be committed:**
 - ❌ `commerce-<appName>-app-v<version>/` (extracted directory)
