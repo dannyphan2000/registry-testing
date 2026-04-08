@@ -85,12 +85,12 @@ git status
 ```
 
 **Expected changes for new app version:**
-- Modified: `commerce-apps-manifest/manifest.json` (root manifest with your app entry)
-- Added: `<domain>/<isv-name>/<appName>-v<version>.zip`
-- Added/Modified: `commerce-apps-manifest/icons/<iconName>.png` (app icon)
-- Modified: `commerce-apps-manifest/translations/en-US.json` (minimum requirement)
-- Optional: Modified other translation files (de.json, fr.json, es.json, etc.)
-- Optional: Modified `<domain>/<isv-name>/catalog.json` (only if brand new app OR deprecating a version)
+- Modified: `commerce-apps-manifest/manifest.json` 
+- Added: `<domain>/<appName>/<appName>-v<version>.zip`
+- Modified: `commerce-apps-manifest/translations/en-US.json` (at minimum)
+- Optional: Modified `<domain>/<appName>/catalog.json` (new apps or deprecations only)
+
+**Note:** Icons are extracted from ZIP by CI workflow, not manually committed.
 
 **IMPORTANT - Do NOT commit:**
 - ❌ Extracted app directories (e.g., `commerce-<appName>-app-v<version>/`)
@@ -110,14 +110,13 @@ Create a clear, descriptive commit message:
 
 ```bash
 git add commerce-apps-manifest/manifest.json
-git add commerce-apps-manifest/icons/<iconName>.png
 git add commerce-apps-manifest/translations/en-US.json
 # Add other translation files if updated:
 # git add commerce-apps-manifest/translations/*.json
-git add <domain>/<isv-name>/<appName>-v<version>.zip
+git add <domain>/<appName>/<appName>-v<version>.zip
 
 # For new apps only:
-git add <domain>/<isv-name>/catalog.json
+git add <domain>/<appName>/catalog.json
 
 git commit -m "Add <displayName> v<version>"
 ```
@@ -177,21 +176,23 @@ gh pr create \
 
 ## Files Modified
 - \`commerce-apps-manifest/manifest.json\` - Updated app entry
-- \`commerce-apps-manifest/icons/<iconName>.png\` - App icon
 - \`commerce-apps-manifest/translations/en-US.json\` - App translations (en-US)
-- \`<domain>/<isv-name>/<appName>-v<version>.zip\` - App package
-- \`<domain>/<isv-name>/catalog.json\` - New apps only
+- \`<domain>/<appName>/<appName>-v<version>.zip\` - App package
+- \`<domain>/<appName>/catalog.json\` - New apps only
+
+**Note:** Icons are automatically extracted from the ZIP by CI workflow - not manually committed.
 
 ## Description
 <!-- Brief description of what this app does or what changed in this version -->
 
 ## Checklist
 
+- [x] App located at \`<domain>/<appName>/\` where \`<appName>\` matches the "id" field
 - [x] ZIP file name follows the required format: \`<appName>-v<version>.zip\`
 - [x] Root manifest \`commerce-apps-manifest/manifest.json\` includes all required fields
 - [x] \`version\`, \`zip\`, and \`sha256\` are updated correctly in root manifest
 - [x] SHA256 hash verified to match the ZIP file
-- [x] App icon exists in \`commerce-apps-manifest/icons/<iconName>.png\`
+- [x] App icon exists in ZIP at \`commerce-<appName>-app-v<version>/icons/\` (CI extracts automatically)
 - [x] Translations added to \`commerce-apps-manifest/translations/en-US.json\` (minimum)
 - [x] \`catalog.json\` included for new apps only (with INIT values)
 - [x] ZIP contains single root folder: \`commerce-<appName>-app-v<version>/\`
@@ -270,21 +271,23 @@ Add <displayName> v<version>
 
 ## Files Modified
 - `commerce-apps-manifest/manifest.json` - Updated app entry
-- `commerce-apps-manifest/icons/<iconName>.png` - App icon
 - `commerce-apps-manifest/translations/en-US.json` - App translations (en-US)
-- `<domain>/<isv-name>/<appName>-v<version>.zip` - App package
-- `<domain>/<isv-name>/catalog.json` - New apps only
+- `<domain>/<appName>/<appName>-v<version>.zip` - App package
+- `<domain>/<appName>/catalog.json` - New apps only
+
+**Note:** Icons are automatically extracted from the ZIP by CI workflow - not manually committed.
 
 ## Description
 <!-- Brief description of what this app does or what changed in this version -->
 
 ## Checklist
 
+- [x] App located at `<domain>/<appName>/` where `<appName>` matches the "id" field
 - [x] ZIP file name follows the required format: `<appName>-v<version>.zip`
 - [x] Root manifest `commerce-apps-manifest/manifest.json` includes all required fields (id, name, description, domain, version, zip, sha256, etc.)
 - [x] `version`, `zip`, and `sha256` are updated correctly in root manifest
 - [x] SHA256 hash verified to match the ZIP file
-- [x] App icon exists in `commerce-apps-manifest/icons/<iconName>.png`
+- [x] App icon exists in ZIP at `commerce-<appName>-app-v<version>/icons/` (CI extracts automatically)
 - [x] Translations added to `commerce-apps-manifest/translations/en-US.json` (minimum)
 - [x] `catalog.json` included for new apps only (with INIT values)
 - [x] ZIP contains single root folder: `commerce-<appName>-app-v<version>/`

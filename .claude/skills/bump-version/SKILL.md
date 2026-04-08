@@ -32,11 +32,13 @@ Example: `0.2.7` → `0.2.8` (patch), or `0.2.8` → `0.3.0` (minor)
 Extract the latest ZIP to work with:
 
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 unzip -q <appName>-v<currentVersion>.zip
 ```
 
 This creates: `commerce-<appName>-app-v<currentVersion>/`
+
+**Note:** Apps are located at `{domain}/{appName}/` where `{appName}` matches the "id" field in manifest.json.
 
 ## Step 3: Update commerce-app.json
 
@@ -80,7 +82,7 @@ If this version bump includes code changes, make them now:
 Rename the directory to match the new version:
 
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 mv commerce-<appName>-app-v<currentVersion>/ commerce-<appName>-app-v<newVersion>/
 ```
 
@@ -94,7 +96,7 @@ commerce-<appName>-app-v<newVersion>/
 Create the ZIP for the new version:
 
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 zip -r <appName>-v<newVersion>.zip commerce-<appName>-app-v<newVersion>/ \
   -x "*.DS_Store" -x "__MACOSX/*" -x "*/.*" -x "Thumbs.db"
 ```
@@ -114,7 +116,7 @@ Check for:
 Generate the hash for the new ZIP:
 
 ```bash
-shasum -a 256 <domain>/<isv-name>/<appName>-v<newVersion>.zip
+shasum -a 256 <domain>/<appName>/<appName>-v<newVersion>.zip
 ```
 
 Copy the hex digest (the long string before the filename).
@@ -145,8 +147,9 @@ Find your app's entry in the appropriate domain array (e.g., `tax`, `payment`, `
 - `zip` - new ZIP filename
 - `sha256` - new computed hash
 
-**Do NOT modify:**
-- `id`, `name`, `description`, `iconName`, `domain`, `type`, `provider`
+**Do NOT modify (unless icon changed):**
+- `id`, `name`, `description`, `domain`, `type`, `provider`
+- `iconName` - only change if you replaced the icon file in the app (must match the actual icon filename in ZIP's `icons/` directory)
 
 ## Step 9: Verify manifest matches ZIP
 
@@ -154,10 +157,10 @@ Double-check that the root manifest is correct:
 
 ```bash
 # Verify ZIP exists
-ls -lh <domain>/<isv-name>/<appName>-v<newVersion>.zip
+ls -lh <domain>/<appName>/<appName>-v<newVersion>.zip
 
 # Verify hash matches
-shasum -a 256 <domain>/<isv-name>/<appName>-v<newVersion>.zip
+shasum -a 256 <domain>/<appName>/<appName>-v<newVersion>.zip
 # Compare output with sha256 field in commerce-apps-manifest/manifest.json
 ```
 
@@ -168,7 +171,7 @@ shasum -a 256 <domain>/<isv-name>/<appName>-v<newVersion>.zip
 Remove extracted directories and old files:
 
 ```bash
-cd <domain>/<isv-name>/
+cd <domain>/<appName>/
 
 # Delete BOTH extracted directories (these should never be committed)
 rm -rf commerce-<appName>-app-v<currentVersion>/
@@ -180,7 +183,7 @@ rm <appName>-v<currentVersion>.zip
 
 **What should remain in the directory:**
 ```
-<domain>/<isv-name>/
+<domain>/<appName>/
 ├── <appName>-v<newVersion>.zip    ✅ Keep (to commit)
 └── catalog.json                    ✅ Keep (already committed)
 
@@ -243,7 +246,7 @@ commerce-apps-manifest/
 
 Run validation before committing:
 
-Use `/validate-commerce-app` skill to verify:
+Use `/validate-app` skill to verify:
 - [ ] Root manifest has correct version and hash
 - [ ] ZIP structure is correct
 - [ ] commerce-app.json version matches root manifest
@@ -255,16 +258,16 @@ Use `/validate-commerce-app` skill to verify:
 Create a commit with the version update:
 
 ```bash
-git add <domain>/<isv-name>/<appName>-v<newVersion>.zip
+git add <domain>/<appName>/<appName>-v<newVersion>.zip
 git add commerce-apps-manifest/manifest.json
 
 # If you deleted old ZIP
-git rm <domain>/<isv-name>/<appName>-v<currentVersion>.zip
+git rm <domain>/<appName>/<appName>-v<currentVersion>.zip
 
 git commit -m "Update <displayName> to v<newVersion>"
 ```
 
-Then follow the `/submit-app-pr` skill to create the PR.
+Then follow the `/submit-pr` skill to create the PR.
 
 ## Quick reference checklist
 
@@ -278,9 +281,9 @@ Then follow the `/submit-app-pr` skill to create the PR.
 - [ ] Verify hash matches
 - [ ] Delete old ZIP and extracted directories
 - [ ] Do NOT modify catalog.json
-- [ ] Run `/validate-commerce-app`
+- [ ] Run `/validate-app`
 - [ ] Commit changes
-- [ ] Create PR with `/submit-app-pr`
+- [ ] Create PR with `/submit-pr`
 
 ## Common pitfalls
 
@@ -298,5 +301,5 @@ Then follow the `/submit-app-pr` skill to create the PR.
 2. **Test changes** - If possible, deploy and test the app before packaging
 3. **Document changes** - Update README.md with what changed in this version
 4. **Keep old ZIP temporarily** - Easy rollback if something goes wrong
-5. **Validate before commit** - Catch issues early with `/validate-commerce-app`
+5. **Validate before commit** - Catch issues early with `/validate-app`
 6. **Use semantic versioning** - Major.Minor.Patch has meaning
