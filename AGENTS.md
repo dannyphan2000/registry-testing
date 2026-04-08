@@ -52,7 +52,7 @@ commerce-{app-name}-app-v{version}/  # Extracted directory (dev only)
 | Skill | When to Use | What It Does |
 |-------|-------------|--------------|
 | `/validate-commerce-app` | Before submitting PR | Validates ZIP structure, manifest, SHA256, commerce-app.json |
-| `/extract-and-inspect` | Reviewing or debugging a ZIP | Extracts and inspects ZIP contents safely |
+| `/extract-app` | Extracting a ZIP for development or review | Extracts ZIP to app directory |
 | `/compare-app-versions` | Code review or changelog generation | Compares two versions to see what changed |
 
 ### Submission
@@ -214,9 +214,9 @@ Scenario 3: Avalara v0.3.0 with avalara.png (hash: xyz789)
 - **User mentions:** "new version", "update version", "bump version", "release"
 - **Suggest:** `/package-app`
 
-### Inspection/Review
-- **User mentions:** "what's inside", "check ZIP", "review", "inspect"
-- **Suggest:** `/extract-and-inspect`
+### Extraction/Review
+- **User mentions:** "what's inside", "extract", "unzip", "look at", "inspect"
+- **Suggest:** `/extract-app`
 
 ### Comparison
 - **User mentions:** "what changed", "diff", "compare versions", "changelog"
@@ -442,16 +442,16 @@ The `domain` field in manifest entries and `commerce-app.json` must be one of th
 
 **Debugging:**
 ```
-/extract-and-inspect
+/extract-app
   → (identify issues)
   → (fix issues)
-  → /generate-commerce-app
-  → /validate-commerce-app
+  → /package-app
+  → /validate-app
 ```
 
 **Review Process:**
 ```
-/extract-and-inspect
+/extract-app
   → /compare-app-versions
   → (review changes)
   → Approve or request changes

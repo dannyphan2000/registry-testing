@@ -1,0 +1,23 @@
+{
+  "skill_name": "extract-app",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Extract the avalara-tax app so I can make some changes to the hook implementations.",
+      "expected_output": "Finds and extracts avalara-tax ZIP from tax/avalara-tax/, shows extracted path, reminds to delete before committing.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I want to look at how the stripe-payment app is structured.",
+      "expected_output": "Finds and extracts stripe-payment ZIP from payment/stripe-payment/, shows extracted path so user can browse the files.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Extract tax/avalara-tax so I can fix the impex files.",
+      "expected_output": "Extracts avalara-tax ZIP using the provided domain/app path directly, shows extracted path.",
+      "files": []
+    }
+  ]
+}

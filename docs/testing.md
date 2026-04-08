@@ -636,7 +636,7 @@ If you encounter testing issues:
 4. **Use validation skills:**
    - `/validate-commerce-app`
    - `/validate-impex`
-   - `/extract-and-inspect`
+   - `/extract-app`
 
 ---
 

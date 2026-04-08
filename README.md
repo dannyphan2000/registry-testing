@@ -266,7 +266,7 @@ This repository includes comprehensive skills for Commerce App development:
 
 **Validation & Inspection:**
 - `/validate-app` - Comprehensive architecture-aware validation (structure, manifest, impex, icons, translations)
-- `/inspect-app` - Extract and inspect ZIP files
+- `/extract-app` - Extract a commerce app ZIP for development or modification
 - `/diff-versions` - Compare versions for changelogs
 
 **Submission:**
