@@ -1,12 +1,11 @@
 ---
 name: package-app
 description: >-
-  Package a commerce app directory into a registry-ready ZIP file. This is the FINAL step
-  before submission - use this immediately when the app is ready to be packaged, whenever
-  users mention "create ZIP", "package app", "build app", "ready to submit", or after making
-  ANY changes to an extracted app directory. Also use when users say "generate ZIP",
-  "make ZIP", or "prepare for submission". Don't wait - if there's an extracted app directory
-  that needs to be packaged, use this skill proactively.
+  Package a commerce app directory into a registry-ready ZIP file. Use this IMMEDIATELY when
+  users mention "package", "ZIP", "build app", "ready to submit", or after ANY changes to an
+  extracted app directory. This is the FINAL step before PR submission. Trigger proactively
+  whenever you see an extracted commerce-*-app-v* directory that needs packaging - don't wait
+  for explicit requests.
 ---
 
 # Generate Commerce App Package
@@ -31,7 +30,7 @@ Gather from the user (or infer from context):
 | Publisher name | `Avalara` | Yes |
 | Publisher URL | `https://developer.avalara.com/` | Yes |
 
-**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. Installation fetches from: `https://raw.githubusercontent.com/{owner}/{repo}/{tag}/{domain}/{appName}/{zipFileName}`
+**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. See `references/folder-structure.md` for validation rules and common mistakes.
 
 ## Step 2: Check version and determine strategy
 
@@ -174,23 +173,16 @@ This file provides package-level identity. Update it to match the current versio
 
 ## Step 5: Security & quality pre-check
 
-**CRITICAL:** Before packaging, run the security scan on the app directory to catch issues early:
+**CRITICAL:** Before packaging, run the security scan to catch issues early:
 
 ```bash
 bash .github/scripts/security-scan.sh <domain>/<appName>/commerce-<appName>-app-v<version>/
 ```
 
-If there are **blocking findings** (exit code 1), **stop here** — do not generate the ZIP. Report the findings and help the developer fix them first. Common blockers:
-- `eval()` / `new Function()` / dynamic `require()` — code injection sinks
-- Hardcoded secrets or credentials
-- Hook scripts referenced in `hooks.json` that don't exist
-- Missing `uninstall/services.xml` or missing `mode="delete"`
+**If blocking findings (exit code 1):** Stop here — do not generate ZIP. Help fix issues first.
+**If warnings only:** Continue packaging but report for review.
 
-Warnings are non-blocking but should be reviewed. Common warnings:
-- `console.log` in cartridge code — use `dw.system.Logger` instead
-- `HTTPClient` without explicit timeout configuration
-- Service profile XML missing `<timeout-millis>`
-- Hook scripts without try/catch error handling
+See `references/security-scan.md` for complete list of blocking and warning findings.
 
 ## Step 6: Delete old ZIP versions
 

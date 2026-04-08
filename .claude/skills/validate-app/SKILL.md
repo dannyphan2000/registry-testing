@@ -1,13 +1,11 @@
 ---
 name: validate-app
 description: >-
-  Run comprehensive validation on a commerce app package before PR submission. Use this skill
-  immediately before ANY submission attempt, when users mention "validate", "check app", "verify",
-  "ready to submit", or after packaging an app. Also trigger proactively BEFORE calling submit-pr
-  to catch errors early and save CI/CD cycles. This is a REQUIRED pre-submission step - don't let
-  users submit without validation. Checks directory structure, manifest format, SHA256 hashes,
-  impex XML syntax, and runs the complete CONTRIBUTING.md checklist. Use whenever debugging
-  validation failures or import errors - it will identify the root cause.
+  Run comprehensive pre-submission validation on commerce app packages. Use IMMEDIATELY when users
+  mention "validate", "check", "verify", or "ready to submit". REQUIRED before calling submit-pr
+  - trigger proactively to catch errors early. Validates directory structure, manifest format,
+  SHA256 hashes, impex XML, security issues, and runs complete CONTRIBUTING.md checklist. Also use
+  when debugging validation failures or import errors to identify root cause quickly.
 ---
 
 # Validate Commerce App Package
@@ -21,7 +19,7 @@ Gather or infer:
 - App name (e.g., `avalara-tax`)
 - Version to validate (or use latest ZIP in directory)
 
-**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. Installation URL: `https://raw.githubusercontent.com/{owner}/{repo}/{tag}/{domain}/{appName}/{zipFileName}`
+**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. See `references/folder-structure.md` for validation rules.
 
 ## Step 2: Validate ZIP file exists
 
@@ -285,63 +283,22 @@ The CI workflow extracts icons from the ZIP by filename, so any mismatch will br
 
 ## Step 12: Security & quality scan
 
-Run the automated security scan script against the extracted CAP, then supplement with AI-powered analysis.
+Run comprehensive security validation in two phases:
 
-### 12a: Run the automated scan script
+### 12a: Automated scan script
 
 ```bash
 bash .github/scripts/security-scan.sh commerce-<appName>-app-v<version>/
 ```
 
-This checks for:
+**If blocking findings:** Mark validation as FAIL and provide specific fixes.
+**If warnings only:** Continue with warnings reported for review.
 
-**Blocking (must fix):**
-- `eval()`, `new Function()` — code injection sinks
-- Dynamic `require()` with concatenation
-- `innerHTML` assignment — XSS risk
-- Hardcoded secrets (API keys, AWS keys, GitHub PATs, Slack tokens, private keys)
-- Hardcoded credentials in impex XML
-- Hook scripts referenced in `hooks.json` that don't exist
-- Missing `uninstall/services.xml` or missing `mode="delete"`
+### 12b: AI-powered semantic review
 
-**Warnings (should review):**
-- `Math.random()` — not cryptographically secure
-- Inline `Authorization` headers instead of service framework
-- `console.log` in cartridge code — use `dw.system.Logger`
-- `HTTPClient` without explicit timeout
-- Service profile XML missing `<timeout-millis>`
-- Hook scripts without try/catch error handling
-- Hook exports not matching expected function names
-- Hardcoded site-id instead of `SITEID` placeholder
-- Absolute file paths in code
-- Install/uninstall service ID mismatches
+After the script runs, perform semantic analysis for data exfiltration, permission scope creep, business logic vulnerabilities, service call patterns, and impex safety.
 
-### 12b: AI-powered semantic review (Claude analysis)
-
-After the script runs, perform these additional checks that require semantic understanding:
-
-**Data exfiltration:**
-- Review hook scripts and service calls. Does the app send basket, customer, or order data to external endpoints that are not related to its declared domain?
-- Example: A tax app sending customer email addresses to an external analytics service.
-
-**Permission scope creep:**
-- Does the app access Script API objects or customer data that it doesn't need for its stated domain?
-- Example: A shipping app reading `dw.customer.Profile` payment instruments.
-
-**Business logic vulnerabilities:**
-- Could the hook implementation be manipulated? (e.g., tax calculation returning negative values, price overrides)
-- Are there race conditions in shared state?
-
-**Service call patterns:**
-- Are external API calls batched efficiently, or is there one call per line item?
-- Are service responses validated before use?
-- Is there retry logic that could cause duplicate side effects (e.g., double-charging)?
-
-**Impex safety:**
-- Do install impex files create overly broad permissions?
-- Do custom object definitions expose sensitive data without access controls?
-
-Report any findings from 12b as warnings with clear explanations.
+See `references/security-scan.md` for complete details on both automated checks and semantic review patterns.
 
 ## Report validation results
 

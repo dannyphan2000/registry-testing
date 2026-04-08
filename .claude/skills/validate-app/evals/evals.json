@@ -3,20 +3,62 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I'm about to submit a PR for the loqate-address-verification app version 1.0.1 in the address-verification domain. The ZIP is at address-verification/loqate-address-verification/loqate-address-verification-v1.0.1.zip. The root manifest has iconName set to 'loqate.png' but the ZIP actually contains icons/loqate-icon.png. Can you validate this app package?",
-      "expected_output": "Identifies icon filename mismatch - manifest says loqate.png but ZIP contains loqate-icon.png, explains why this will break (CI extracts by filename), marks validation as FAIL with specific fix recommendation to either rename icon file or update manifest",
+      "prompt": "Before I submit my PR for loqate address verification app, can you validate it? The ZIP is at address-verification/loqate-address-verification/loqate-address-verification-v1.0.1.zip. I updated the manifest.json root file with iconName 'loqate.png' but when I check the ZIP the icon file is actually named loqate-icon.png in the icons/ directory. Is this gonna be a problem?",
+      "expected_output": "Identifies critical icon filename mismatch - manifest iconName='loqate.png' but ZIP contains 'loqate-icon.png'. Explains CI workflow extracts icons by filename so this WILL break icon display. Marks validation as FAIL. Provides specific fix: either (1) rename icon file in ZIP to loqate.png, or (2) update manifest iconName to 'loqate-icon.png'. Recommends option 1 for consistency. Also validates other aspects but icon mismatch is blocking.",
       "files": []
     },
     {
       "id": 2,
-      "prompt": "Please validate the stripe-payments app located at payment/stripe-payments/stripe-payments-v2.0.0.zip before I submit the PR. The manifest entry has the correct iconName 'stripe.png', all translations are added, and the folder structure should be good.",
-      "expected_output": "Validates folder structure (payment/stripe-payments/ matches {domain}/{appName}/ pattern), checks icon filename matches manifest iconName, verifies translations in en-US.json, computes and validates SHA256 hash, confirms all requirements pass, marks validation as PASS",
+      "prompt": "validate payment/stripe-payments/stripe-payments-v2.0.0.zip for me. I just packaged it and want to make sure everything's good before opening the PR. manifest has correct iconName 'stripe.png', I added translations to all 13 locale files, folder structure should be correct, and I ran the security scan which passed with no issues.",
+      "expected_output": "Runs comprehensive validation: checks folder structure (payment/stripe-payments/ matches {domain}/{appName}/ ✓), verifies icon exists in ZIP and matches manifest iconName ✓, validates translations exist in en-US.json (minimum requirement) ✓, computes and verifies SHA256 hash matches manifest entry, checks ZIP structure (single root folder, no junk files), validates commerce-app.json fields, detects architecture and validates architecture-specific requirements. If security scan already passed, notes that. Marks validation as PASS if all checks succeed.",
       "files": []
     },
     {
       "id": 3,
-      "prompt": "I need to validate my tax app before submitting. It's located at tax/avalara-inc/avalara-tax-v1.0.2.zip. The app id in manifest.json is 'avalara-tax'. Is this ready to go?",
-      "expected_output": "Identifies folder structure violation - app is at tax/avalara-inc/ but should be at tax/avalara-tax/ to match app id, explains installation URL requirement, marks validation as FAIL with specific fix to move to correct location",
+      "prompt": "my tax app is located at tax/avalara-inc/avalara-tax-v1.0.2.zip and i'm ready to submit. the app id in the root manifest is 'avalara-tax'. can you check if this is ready?",
+      "expected_output": "Identifies folder structure violation - app is at tax/avalara-inc/ but manifest app id is 'avalara-tax', so it should be at tax/avalara-tax/. Explains installation URL format requires {domain}/{appName}/ pattern. Marks validation as FAIL with specific fix: move app to tax/avalara-tax/ directory. Does NOT proceed with other validation checks until this critical structural issue is fixed since it will cause 404 errors during installation.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "validate gift-cards/giftly/giftly-v1.5.0.zip. This is a backend-only app with impex files. I ran xmllint on all the XMLs and they passed, but I want to make sure the services have proper install/uninstall pairs and all the IDs match up. Also check if my site preferences use SITEID placeholder instead of an actual site ID - I think I might have hardcoded 'SiteGenesis' somewhere by mistake.",
+      "expected_output": "Detects backend-only architecture. Validates impex files comprehensively: runs xmllint on all XMLs, checks install/uninstall service ID pairs match exactly, scans for SITEID placeholder usage vs hardcoded site IDs (reports any 'SiteGenesis' or other hardcoded IDs as violations), validates service credentials aren't hardcoded, checks timeout configurations, verifies uninstall services have mode='delete', validates attribute naming (camelCase, app-prefixed). Reports any site ID hardcoding as WARNING or FAIL depending on severity. See references/impex-validation.md for complete rules.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "I need validation on shipping/shippo-shipping/shippo-shipping-v2.3.1.zip before submitting. This is a fullstack app with both UI and backend. I'm worried about the security scan - last time it found some console.log statements in my cartridge code and a hook script that was missing from the ZIP even though it was referenced in hooks.json. Can you check?",
+      "expected_output": "Detects fullstack architecture. Runs two-phase security validation: (1) Automated script checks for console.log in cartridge code (WARNING), missing hook scripts referenced in hooks.json (BLOCKING), hardcoded secrets, code injection patterns, etc. (2) AI semantic review for data exfiltration, scope creep, business logic issues. Reports specific findings with file paths. If hook scripts are still missing, marks FAIL. If only console.log warnings, marks PASS but reports warnings. See references/security-scan.md for complete security checks.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "quick validation check on loyalty/smile-loyalty-v1.0.0.zip in the loyalty/smile-io/ directory. This is a UI-only app. I added all the required files but forgot - do I need to have all three locale directories (en-US, en-GB, it-IT) or is en-US enough?",
+      "expected_output": "Detects UI-only architecture. Validates UI-specific requirements including locales. Confirms that ALL THREE locales (en-US, en-GB, it-IT) are REQUIRED for storefront-next extensions - en-US alone is not sufficient. Checks if ZIP contains storefront-next/src/extensions/smile-loyalty/locales/ with all three subdirectories. If any locale missing, marks FAIL and lists which locales are missing. Also validates other UI requirements (target-config.json, index.ts, 'use client' directives, no hardcoded strings/colors).",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "validate analytics/google-analytics/google-analytics-v1.8.5.zip. The SHA256 hash in the root manifest is 'a3f5b2c1d4e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7' and when I run shasum I get 'a3f5b2c1d4e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z8' - just the last character is different. Is this OK or does it need to be exact?",
+      "expected_output": "Computes SHA256 hash of the ZIP file using shasum -a 256. Compares computed hash with manifest entry. Detects mismatch (last character 7 vs 8). Explains SHA256 hash MUST match exactly - even one character difference means the file content doesn't match manifest. Marks validation as FAIL. Recommends: (1) recompute hash and update manifest with correct value, or (2) if hash was correct before, ZIP may have been modified after packaging - repackage from source. Emphasizes hash integrity is critical for security and installation reliability.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "I'm about to submit payment/adyen-payments-v3.0.0.zip. Can you validate just the translation files? I added the app entry to en-US.json but I'm not sure if I need to update all 13 locale files or if en-US is enough. Also I set the iconName in manifest to 'adyen.png' - does that icon need to be in the commerce-apps-manifest/icons/ directory already or does CI handle that?",
+      "expected_output": "Validates translation files: checks that app entry exists in commerce-apps-manifest/translations/en-US.json with 'name' and 'description' fields (REQUIRED minimum). For other 12 locale files, recommends adding entries but notes they're best practice, not blocking. Validates icon: confirms iconName='adyen.png' in manifest, checks ZIP contains icons/adyen.png. Explains CI workflow AUTOMATICALLY extracts icons from ZIP to commerce-apps-manifest/icons/ during PR merge - developers should NOT manually add icons to that directory. If icon missing from ZIP, marks FAIL. Validates icon filename matches manifest exactly.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "Can you explain what the validation process checks? I want to understand what happens when I run this before I actually validate my app.",
+      "expected_output": "This is an informational question about the validation process, not a request to validate a specific app. Should explain the comprehensive validation steps: ZIP existence, SHA256 verification, root manifest entry validation, ZIP contents structure, architecture detection (UI/backend/fullstack), commerce-app.json validation, architecture-specific checks (UI: locales/target-config, backend: impex/cartridges), impex XML validation, translations in locale files, icon filename matching, catalog.json handling, security scan (automated + AI semantic review). Does NOT actually validate any app.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "validate tax/taxjar-v2.1.0.zip in tax/taxjar/ directory. This is a backend app. I'm concerned about the security scan - my hook code makes HTTP calls to the TaxJar API and sends the full basket data including line items, customer address, and tax amounts. Is that gonna flag as data exfiltration? The app is a tax calculator so it needs that data to calculate taxes.",
+      "expected_output": "Runs security validation including AI-powered semantic review. Analyzes hook scripts and service calls. For tax domain app sending basket data (line items, addresses, tax amounts) to external TaxJar API endpoint: this is EXPECTED and APPROPRIATE for tax calculation domain - not data exfiltration. However, checks: (1) is customer email/payment data also sent? (WARNING if yes - not needed for tax), (2) is data sent to analytics or other non-tax endpoints? (VIOLATION), (3) are service calls using proper service framework vs inline auth? Reviews business logic: tax calculation should validate responses, handle edge cases. Reports findings appropriately - legitimate domain-related data sharing is OK, but flags any scope creep.",
       "files": []
     }
   ]
