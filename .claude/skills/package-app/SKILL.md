@@ -172,7 +172,27 @@ This file provides package-level identity. Update it to match the current versio
 }
 ```
 
-## Step 5: Delete old ZIP versions
+## Step 5: Security & quality pre-check
+
+**CRITICAL:** Before packaging, run the security scan on the app directory to catch issues early:
+
+```bash
+bash .github/scripts/security-scan.sh <domain>/<appName>/commerce-<appName>-app-v<version>/
+```
+
+If there are **blocking findings** (exit code 1), **stop here** — do not generate the ZIP. Report the findings and help the developer fix them first. Common blockers:
+- `eval()` / `new Function()` / dynamic `require()` — code injection sinks
+- Hardcoded secrets or credentials
+- Hook scripts referenced in `hooks.json` that don't exist
+- Missing `uninstall/services.xml` or missing `mode="delete"`
+
+Warnings are non-blocking but should be reviewed. Common warnings:
+- `console.log` in cartridge code — use `dw.system.Logger` instead
+- `HTTPClient` without explicit timeout configuration
+- Service profile XML missing `<timeout-millis>`
+- Hook scripts without try/catch error handling
+
+## Step 6: Delete old ZIP versions
 
 **CRITICAL:** Before generating the new ZIP, delete any existing ZIP files for this app to avoid clutter:
 
@@ -186,7 +206,7 @@ This ensures:
 - No confusion about which ZIP is current
 - Clean git status
 
-## Step 6: Generate the ZIP
+## Step 7: Generate the ZIP
 
 Run from the **parent directory** of the app folder so the root entry is `commerce-<appName>-app-v<version>/`:
 
@@ -207,7 +227,7 @@ Verify the ZIP:
      - Backend-only: Has `cartridges/` and `impex/`, NO `storefront-next/`
      - Fullstack: Has `storefront-next/`, `cartridges/`, AND `impex/`
 
-## Step 7: Compute SHA256 hash
+## Step 8: Compute SHA256 hash
 
 Generate the hash for the ZIP:
 
@@ -217,7 +237,7 @@ shasum -a 256 <domain>/<appName>/<appName>-v<version>.zip
 
 Copy the hex digest (the long string before the filename).
 
-## Step 8: Update root manifest
+## Step 9: Update root manifest
 
 **CRITICAL:** Update the root manifest at `commerce-apps-manifest/manifest.json`:
 
@@ -245,7 +265,7 @@ Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`
 **For new apps:** Add a new entry to the appropriate domain array.
 **For updates:** Update the existing entry's `version`, `zip`, and `sha256` fields.
 
-## Step 9: Add translations to manifest
+## Step 10: Add translations to manifest
 
 **CRITICAL:** Add app name and description translations to ALL locale files in `commerce-apps-manifest/translations/`:
 
@@ -279,7 +299,7 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 - Provide translated name/description
 - Use English values as fallback (better than missing entry)
 
-## Step 10: Handle catalog.json
+## Step 11: Handle catalog.json
 
 - **Existing app**: Do not modify `catalog.json` — CI updates it on merge.
 - **Brand new app**: Create `catalog.json` next to the ZIP:
@@ -294,7 +314,7 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 }
 ```
 
-## Step 11: Final validation checklist
+## Step 12: Final validation checklist
 
 **All architectures:**
 - [ ] App is located at `<domain>/<appName>/` where `<appName>` matches the "id" field in manifest.json
@@ -322,7 +342,7 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 - [ ] `impex/install/` directory exists
 - [ ] `impex/uninstall/` directory exists for cleanup
 
-## Step 12: Clean up extracted directory
+## Step 13: Clean up extracted directory
 
 After generating the ZIP, delete the extracted directory (it should NOT be committed):
 

@@ -283,6 +283,66 @@ The CI workflow extracts icons from the ZIP by filename, so any mismatch will br
 - [ ] Site preferences: camelCase IDs with app prefix, SITEID placeholder
 - [ ] Cartridge package.json has "hooks" field, hooks.json uses explicit paths
 
+## Step 12: Security & quality scan
+
+Run the automated security scan script against the extracted CAP, then supplement with AI-powered analysis.
+
+### 12a: Run the automated scan script
+
+```bash
+bash .github/scripts/security-scan.sh commerce-<appName>-app-v<version>/
+```
+
+This checks for:
+
+**Blocking (must fix):**
+- `eval()`, `new Function()` — code injection sinks
+- Dynamic `require()` with concatenation
+- `innerHTML` assignment — XSS risk
+- Hardcoded secrets (API keys, AWS keys, GitHub PATs, Slack tokens, private keys)
+- Hardcoded credentials in impex XML
+- Hook scripts referenced in `hooks.json` that don't exist
+- Missing `uninstall/services.xml` or missing `mode="delete"`
+
+**Warnings (should review):**
+- `Math.random()` — not cryptographically secure
+- Inline `Authorization` headers instead of service framework
+- `console.log` in cartridge code — use `dw.system.Logger`
+- `HTTPClient` without explicit timeout
+- Service profile XML missing `<timeout-millis>`
+- Hook scripts without try/catch error handling
+- Hook exports not matching expected function names
+- Hardcoded site-id instead of `SITEID` placeholder
+- Absolute file paths in code
+- Install/uninstall service ID mismatches
+
+### 12b: AI-powered semantic review (Claude analysis)
+
+After the script runs, perform these additional checks that require semantic understanding:
+
+**Data exfiltration:**
+- Review hook scripts and service calls. Does the app send basket, customer, or order data to external endpoints that are not related to its declared domain?
+- Example: A tax app sending customer email addresses to an external analytics service.
+
+**Permission scope creep:**
+- Does the app access Script API objects or customer data that it doesn't need for its stated domain?
+- Example: A shipping app reading `dw.customer.Profile` payment instruments.
+
+**Business logic vulnerabilities:**
+- Could the hook implementation be manipulated? (e.g., tax calculation returning negative values, price overrides)
+- Are there race conditions in shared state?
+
+**Service call patterns:**
+- Are external API calls batched efficiently, or is there one call per line item?
+- Are service responses validated before use?
+- Is there retry logic that could cause duplicate side effects (e.g., double-charging)?
+
+**Impex safety:**
+- Do install impex files create overly broad permissions?
+- Do custom object definitions expose sensitive data without access controls?
+
+Report any findings from 12b as warnings with clear explanations.
+
 ## Report validation results
 
 Provide a clear summary:
