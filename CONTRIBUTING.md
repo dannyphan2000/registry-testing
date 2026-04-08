@@ -21,7 +21,7 @@ If you're using Claude Code, several skills are available to streamline the cont
 ### Validation & Updates
 - **`/validate-app`** - Comprehensive validation before submission (checks structure, manifest, SHA256, impex XML, icons, translations)
 - **`/validate-impex`** - Deep validation of impex files only (useful during development, also included in `/validate-app`)
-- **`/bump-version`** - Streamline version bumps for existing apps (updates version, regenerates ZIP, computes hash)
+- **`/package-app`** - Package app into registry-ready ZIP (handles both new apps and version bumps)
 
 ### Inspection & Comparison
 - **`/inspect-app`** - Extract and inspect ZIP files to review structure and contents

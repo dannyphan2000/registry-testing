@@ -1,16 +1,17 @@
 ---
 name: package-app
 description: >-
-  Package a commerce app directory into a registry-ready ZIP file. Use this IMMEDIATELY when
-  users mention "package", "ZIP", "build app", "ready to submit", or after ANY changes to an
-  extracted app directory. This is the FINAL step before PR submission. Trigger proactively
-  whenever you see an extracted commerce-*-app-v* directory that needs packaging - don't wait
-  for explicit requests.
+  Package a commerce app directory into a registry-ready ZIP file. This skill handles BOTH
+  new apps AND version bumps of existing apps. Use this IMMEDIATELY when users mention
+  "package", "ZIP", "build app", "ready to submit", "bump version", "new version",
+  "update version", "release", "patch", "minor update", "major release", or after ANY
+  changes to an app directory. Trigger proactively whenever you see a commerce-*-app-v*
+  directory that needs packaging - don't wait for explicit requests.
 ---
 
 # Generate Commerce App Package
 
-Build a registry-ready Commerce App Package (CAP) ZIP from an extracted app directory.
+Build a registry-ready Commerce App Package (CAP) ZIP from an app directory. Handles both new apps and version updates.
 
 ## Reference implementation
 
@@ -59,10 +60,17 @@ Gather from the user (or infer from context):
      - **FORCE VERSION BUMP** - no option to replace
      - **STOP and tell the user:** "Version `<version>` already exists in catalog.json and cannot be replaced. Please bump to a new version."
      - **ASK USER:** "What version should this release be? (e.g., `<suggested-next-version>`)"
-     - Use `/update-app-version` skill instead for proper version bumping
+     - Use semantic versioning: **major** (breaking), **minor** (new features), **patch** (bug fixes)
      - Do NOT proceed until user provides a new version number
 
-3. **Version validation rules:**
+3. **If bumping an existing version and no app directory exists yet**, extract the current ZIP:
+   ```bash
+   cd <domain>/<appName>/
+   unzip -q <appName>-v<currentVersion>.zip
+   mv commerce-<appName>-app-v<currentVersion>/ commerce-<appName>-app-v<newVersion>/
+   ```
+
+4. **Version validation rules:**
    - If version exists in `catalog.json` versions → MUST bump version (no exceptions)
    - Always confirm version with user before generating ZIP
    - Never silently change version without explicit user approval
