@@ -17,23 +17,55 @@ jobs:
           fetch-depth: 0
 
       - name: Extract Commerce App Packages
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          BASE=${{ github.event.pull_request.base.sha }}
-          > /tmp/extracted-dirs.txt
-          for zip in $(git diff --diff-filter=AM --name-only "$BASE" -- '*.zip'); do
-            if [ -f "$zip" ]; then
-              dir="${zip%.zip}-extracted"
-              mkdir -p "$dir"
-              unzip -o "$zip" -d "$dir"
-              echo "$dir" >> /tmp/extracted-dirs.txt
+          set -euo pipefail
+          > /tmp/cap-roots.txt
+
+          # Collect changed ZIPs (same approach as verify-zip.yml)
+          : > /tmp/changed_zips.txt
+          while IFS= read -r -d '' f; do
+            [[ "$f" == *.zip ]] && printf '%s\n' "$f" >> /tmp/changed_zips.txt
+          done < <(git diff --name-only -z "$BASE_SHA" "$HEAD_SHA")
+
+          if [[ ! -s /tmp/changed_zips.txt ]]; then
+            echo "No .zip files changed in this PR."
+            exit 0
+          fi
+
+          echo "Changed ZIPs:"
+          cat /tmp/changed_zips.txt
+
+          while IFS= read -r zip_path; do
+            [[ -f "$zip_path" ]] || continue
+
+            tmpdir="$(mktemp -d)"
+            unzip -q "$zip_path" -d "$tmpdir"
+
+            # Find the single root directory inside the ZIP
+            mapfile -t roots < <(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | grep -v '^__MACOSX$' | sort -u)
+            if [[ ${#roots[@]} -ne 1 ]]; then
+              echo "::warning::Could not determine CAP root for $zip_path, skipping"
+              rm -rf "$tmpdir"
+              continue
             fi
-          done
+            cap_root="$tmpdir/${roots[0]}"
+
+            echo "Extracted $zip_path → $cap_root"
+            echo "$cap_root" >> /tmp/cap-roots.txt
+          done < /tmp/changed_zips.txt
+
+          echo "CAP roots:"
+          cat /tmp/cap-roots.txt
 
       - name: Static Security Scan
         run: |
           while IFS= read -r dir; do
             bash .github/scripts/security-scan.sh "$dir"
-          done < /tmp/extracted-dirs.txt
+          done < /tmp/cap-roots.txt
 
       - name: Prompt Injection Scan
         run: |
@@ -56,7 +88,7 @@ jobs:
           matches=""
           while IFS= read -r dir; do
             matches+=$(grep -r -i -n -E "$pattern" --include='*.js' --include='*.json' --include='*.xml' --include='*.ts' --include='*.jsx' --include='*.tsx' "$dir" 2>/dev/null || true)
-          done < /tmp/extracted-dirs.txt
+          done < /tmp/cap-roots.txt
           if [ -n "$matches" ]; then
             echo "::error::Potential prompt injection detected. Skipping AI security review."
             echo "$matches"
@@ -69,35 +101,42 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Collect extracted source files into a single payload
-          CODE=""
+          # Collect extracted source files into a temp file
+          > /tmp/cap-source.txt
           while IFS= read -r dir; do
             while IFS= read -r f; do
-              CODE+="--- FILE: $f ---"$'\n'
-              CODE+="$(cat "$f")"$'\n\n'
+              echo "--- FILE: $f ---" >> /tmp/cap-source.txt
+              cat "$f" >> /tmp/cap-source.txt
+              echo "" >> /tmp/cap-source.txt
             done < <(find "$dir" -type f \( -name '*.js' -o -name '*.ts' -o -name '*.jsx' -o -name '*.tsx' -o -name '*.json' -o -name '*.xml' \))
-          done < /tmp/extracted-dirs.txt
+          done < /tmp/cap-roots.txt
 
-          if [ -z "$CODE" ]; then
+          if [[ ! -s /tmp/cap-source.txt ]]; then
             echo "No source files found in extracted CAPs. Skipping AI review."
             exit 0
           fi
 
-          # Call Anthropic API
-          PROMPT=$(jq -n --arg code "$CODE" '{
+          echo "Source payload size: $(wc -c < /tmp/cap-source.txt) bytes"
+
+          # Build API request using file input (avoids argument list too long)
+          jq -n --rawfile code /tmp/cap-source.txt '{
             model: "claude-sonnet-4-20250514",
             max_tokens: 4096,
             messages: [{
               role: "user",
               content: ("You are a security reviewer for SFCC Commerce App Packages. Analyze the following source files for security vulnerabilities.\n\nFocus on:\n- XSS (dangerouslySetInnerHTML, unescaped user input, document.write)\n- SSRF (attacker-controlled URLs reaching HTTPClient or service calls)\n- Code injection (eval, new Function, dynamic require)\n- Path traversal (user input in File() or require())\n- Hardcoded secrets or credentials\n- Data exfiltration (PII sent to undeclared endpoints)\n- SFCC Script API misuse (dw.io.File, dw.net.HTTPClient, dw.system.System)\n- Hook contract violations (side effects outside declared domain)\n- Insecure deserialization\n- Prototype pollution\n\nFor each finding, respond in JSON format:\n{\"findings\": [{\"file\": \"path\", \"line\": number, \"severity\": \"critical|high|medium|low\", \"category\": \"string\", \"description\": \"string\", \"remediation\": \"string\"}]}\n\nIf no issues found, return {\"findings\": []}\n\nSource files:\n" + $code)
             }]
-          }')
+          }' > /tmp/cap-prompt.json
 
           RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$PROMPT")
+            -d @/tmp/cap-prompt.json)
+
+          # Debug: show raw API response
+          echo "API response:"
+          echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
 
           # Extract the text response
           FINDINGS=$(echo "$RESPONSE" | jq -r '.content[0].text')
