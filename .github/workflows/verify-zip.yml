@@ -380,3 +380,34 @@ jobs:
             trap - RETURN
           done < changed_zips.txt
 
+      - name: Step 7 - Security & quality scan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [[ -s changed_zips.txt ]] || exit 0
+
+          while IFS= read -r zip_path; do
+            [[ -f "$zip_path" ]] || continue
+
+            tmpdir="$(mktemp -d)"
+            trap 'rm -rf "$tmpdir"' RETURN
+
+            unzip -q "$zip_path" -d "$tmpdir"
+
+            # Find the single root directory
+            mapfile -t roots < <(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | grep -v '^__MACOSX$' | sort -u)
+            if [[ ${#roots[@]} -ne 1 ]]; then
+              echo "::error file=$zip_path::Cannot determine CAP root for security scan"
+              rm -rf "$tmpdir"
+              exit 1
+            fi
+            cap_root="$tmpdir/${roots[0]}"
+
+            echo "Running security & quality scan on $zip_path ..."
+            bash ".github/scripts/security-scan.sh" "$cap_root"
+
+            rm -rf "$tmpdir"
+            trap - RETURN
+          done < changed_zips.txt
+

@@ -1,17 +1,17 @@
 ---
 name: package-app
 description: >-
-  Package a commerce app directory into a registry-ready ZIP file. This is the FINAL step
-  before submission - use this immediately when the app is ready to be packaged, whenever
-  users mention "create ZIP", "package app", "build app", "ready to submit", or after making
-  ANY changes to an extracted app directory. Also use when users say "generate ZIP",
-  "make ZIP", or "prepare for submission". Don't wait - if there's an extracted app directory
-  that needs to be packaged, use this skill proactively.
+  Package a commerce app directory into a registry-ready ZIP file. This skill handles BOTH
+  new apps AND version bumps of existing apps. Use this IMMEDIATELY when users mention
+  "package", "ZIP", "build app", "ready to submit", "bump version", "new version",
+  "update version", "release", "patch", "minor update", "major release", or after ANY
+  changes to an app directory. Trigger proactively whenever you see a commerce-*-app-v*
+  directory that needs packaging - don't wait for explicit requests.
 ---
 
 # Generate Commerce App Package
 
-Build a registry-ready Commerce App Package (CAP) ZIP from an extracted app directory.
+Build a registry-ready Commerce App Package (CAP) ZIP from an app directory. Handles both new apps and version updates.
 
 ## Reference implementation
 
@@ -31,7 +31,7 @@ Gather from the user (or infer from context):
 | Publisher name | `Avalara` | Yes |
 | Publisher URL | `https://developer.avalara.com/` | Yes |
 
-**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. Installation fetches from: `https://raw.githubusercontent.com/{owner}/{repo}/{tag}/{domain}/{appName}/{zipFileName}`
+**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. See `references/folder-structure.md` for validation rules and common mistakes.
 
 ## Step 2: Check version and determine strategy
 
@@ -60,10 +60,17 @@ Gather from the user (or infer from context):
      - **FORCE VERSION BUMP** - no option to replace
      - **STOP and tell the user:** "Version `<version>` already exists in catalog.json and cannot be replaced. Please bump to a new version."
      - **ASK USER:** "What version should this release be? (e.g., `<suggested-next-version>`)"
-     - Use `/update-app-version` skill instead for proper version bumping
+     - Use semantic versioning: **major** (breaking), **minor** (new features), **patch** (bug fixes)
      - Do NOT proceed until user provides a new version number
 
-3. **Version validation rules:**
+3. **If bumping an existing version and no app directory exists yet**, extract the current ZIP:
+   ```bash
+   cd <domain>/<appName>/
+   unzip -q <appName>-v<currentVersion>.zip
+   mv commerce-<appName>-app-v<currentVersion>/ commerce-<appName>-app-v<newVersion>/
+   ```
+
+4. **Version validation rules:**
    - If version exists in `catalog.json` versions → MUST bump version (no exceptions)
    - Always confirm version with user before generating ZIP
    - Never silently change version without explicit user approval
@@ -172,7 +179,20 @@ This file provides package-level identity. Update it to match the current versio
 }
 ```
 
-## Step 5: Delete old ZIP versions
+## Step 5: Security & quality pre-check
+
+**CRITICAL:** Before packaging, run the security scan to catch issues early:
+
+```bash
+bash .github/scripts/security-scan.sh <domain>/<appName>/commerce-<appName>-app-v<version>/
+```
+
+**If blocking findings (exit code 1):** Stop here — do not generate ZIP. Help fix issues first.
+**If warnings only:** Continue packaging but report for review.
+
+See `references/security-scan.md` for complete list of blocking and warning findings.
+
+## Step 6: Delete old ZIP versions
 
 **CRITICAL:** Before generating the new ZIP, delete any existing ZIP files for this app to avoid clutter:
 
@@ -186,7 +206,7 @@ This ensures:
 - No confusion about which ZIP is current
 - Clean git status
 
-## Step 6: Generate the ZIP
+## Step 7: Generate the ZIP
 
 Run from the **parent directory** of the app folder so the root entry is `commerce-<appName>-app-v<version>/`:
 
@@ -207,7 +227,7 @@ Verify the ZIP:
      - Backend-only: Has `cartridges/` and `impex/`, NO `storefront-next/`
      - Fullstack: Has `storefront-next/`, `cartridges/`, AND `impex/`
 
-## Step 7: Compute SHA256 hash
+## Step 8: Compute SHA256 hash
 
 Generate the hash for the ZIP:
 
@@ -217,7 +237,7 @@ shasum -a 256 <domain>/<appName>/<appName>-v<version>.zip
 
 Copy the hex digest (the long string before the filename).
 
-## Step 8: Update root manifest
+## Step 9: Update root manifest
 
 **CRITICAL:** Update the root manifest at `commerce-apps-manifest/manifest.json`:
 
@@ -245,7 +265,7 @@ Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`
 **For new apps:** Add a new entry to the appropriate domain array.
 **For updates:** Update the existing entry's `version`, `zip`, and `sha256` fields.
 
-## Step 9: Add translations to manifest
+## Step 10: Add translations to manifest
 
 **CRITICAL:** Add app name and description translations to ALL locale files in `commerce-apps-manifest/translations/`:
 
@@ -279,7 +299,7 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 - Provide translated name/description
 - Use English values as fallback (better than missing entry)
 
-## Step 10: Handle catalog.json
+## Step 11: Handle catalog.json
 
 - **Existing app**: Do not modify `catalog.json` — CI updates it on merge.
 - **Brand new app**: Create `catalog.json` next to the ZIP:
@@ -294,7 +314,7 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 }
 ```
 
-## Step 11: Final validation checklist
+## Step 12: Final validation checklist
 
 **All architectures:**
 - [ ] App is located at `<domain>/<appName>/` where `<appName>` matches the "id" field in manifest.json
@@ -322,7 +342,7 @@ For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, k
 - [ ] `impex/install/` directory exists
 - [ ] `impex/uninstall/` directory exists for cleanup
 
-## Step 12: Clean up extracted directory
+## Step 13: Clean up extracted directory
 
 After generating the ZIP, delete the extracted directory (it should NOT be committed):
 

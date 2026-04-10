@@ -1,13 +1,11 @@
 ---
 name: validate-app
 description: >-
-  Run comprehensive validation on a commerce app package before PR submission. Use this skill
-  immediately before ANY submission attempt, when users mention "validate", "check app", "verify",
-  "ready to submit", or after packaging an app. Also trigger proactively BEFORE calling submit-pr
-  to catch errors early and save CI/CD cycles. This is a REQUIRED pre-submission step - don't let
-  users submit without validation. Checks directory structure, manifest format, SHA256 hashes,
-  impex XML syntax, and runs the complete CONTRIBUTING.md checklist. Use whenever debugging
-  validation failures or import errors - it will identify the root cause.
+  Run comprehensive pre-submission validation on commerce app packages. Use IMMEDIATELY when users
+  mention "validate", "check", "verify", or "ready to submit". REQUIRED before calling submit-pr
+  - trigger proactively to catch errors early. Validates directory structure, manifest format,
+  SHA256 hashes, impex XML, security issues, and runs complete CONTRIBUTING.md checklist. Also use
+  when debugging validation failures or import errors to identify root cause quickly.
 ---
 
 # Validate Commerce App Package
@@ -21,7 +19,7 @@ Gather or infer:
 - App name (e.g., `avalara-tax`)
 - Version to validate (or use latest ZIP in directory)
 
-**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. Installation URL: `https://raw.githubusercontent.com/{owner}/{repo}/{tag}/{domain}/{appName}/{zipFileName}`
+**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. See `references/folder-structure.md` for validation rules.
 
 ## Step 2: Validate ZIP file exists
 
@@ -282,6 +280,25 @@ The CI workflow extracts icons from the ZIP by filename, so any mismatch will br
 - [ ] Services: no hardcoded credentials, install/uninstall pairs match
 - [ ] Site preferences: camelCase IDs with app prefix, SITEID placeholder
 - [ ] Cartridge package.json has "hooks" field, hooks.json uses explicit paths
+
+## Step 12: Security & quality scan
+
+Run comprehensive security validation in two phases:
+
+### 12a: Automated scan script
+
+```bash
+bash .github/scripts/security-scan.sh commerce-<appName>-app-v<version>/
+```
+
+**If blocking findings:** Mark validation as FAIL and provide specific fixes.
+**If warnings only:** Continue with warnings reported for review.
+
+### 12b: AI-powered semantic review
+
+After the script runs, perform semantic analysis for data exfiltration, permission scope creep, business logic vulnerabilities, service call patterns, and impex safety.
+
+See `references/security-scan.md` for complete details on both automated checks and semantic review patterns.
 
 ## Report validation results
 

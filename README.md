@@ -256,8 +256,7 @@ This repository includes comprehensive skills for Commerce App development:
 
 **App Development:**
 - `/scaffold-app` - Generate complete app structure (UI-only, Backend-only, or Fullstack)
-- `/package-app` - Package app into registry-ready ZIP with icon and translations
-- `/bump-version` - Bump version and regenerate all related files
+- `/package-app` - Package app into registry-ready ZIP (handles both new apps and version bumps)
 
 **Impex Generation:**
 - `/generate-service-impex` - Service credentials, profiles, definitions
@@ -267,7 +266,7 @@ This repository includes comprehensive skills for Commerce App development:
 
 **Validation & Inspection:**
 - `/validate-app` - Comprehensive architecture-aware validation (structure, manifest, impex, icons, translations)
-- `/inspect-app` - Extract and inspect ZIP files
+- `/extract-app` - Extract a commerce app ZIP for development or modification
 - `/diff-versions` - Compare versions for changelogs
 
 **Submission:**

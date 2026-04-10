@@ -67,8 +67,9 @@ $RECYCLE.BIN/
 !.cursor/
 !.cursor/**
 
-# But exclude local settings files
+# But exclude local settings and eval results
 .claude/settings.local.json
+.claude/**/eval-results/
 .cursor/settings.local.json
 
 # ==========================================

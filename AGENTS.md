@@ -39,7 +39,6 @@ commerce-{app-name}-app-v{version}/  # Extracted directory (dev only)
 |-------|-------------|--------------|
 | `/scaffold-commerce-app` | Starting a new app from scratch | Generates complete directory structure with templates |
 | `/generate-commerce-app` | Ready to package app for registry | Creates ZIP, updates manifest.json with SHA256 |
-| `/update-app-version` | Bumping version of existing app | Updates version, regenerates ZIP, computes new hash |
 
 ### Impex Generation
 | Skill | When to Use | What It Does |
@@ -53,7 +52,7 @@ commerce-{app-name}-app-v{version}/  # Extracted directory (dev only)
 | Skill | When to Use | What It Does |
 |-------|-------------|--------------|
 | `/validate-commerce-app` | Before submitting PR | Validates ZIP structure, manifest, SHA256, commerce-app.json |
-| `/extract-and-inspect` | Reviewing or debugging a ZIP | Extracts and inspects ZIP contents safely |
+| `/extract-app` | Extracting a ZIP for development or review | Extracts ZIP to app directory |
 | `/compare-app-versions` | Code review or changelog generation | Compares two versions to see what changed |
 
 ### Submission
@@ -83,8 +82,8 @@ Your response:
 User: "I need to release version 1.0.1 of my app"
 
 Your response:
-1. Suggest `/update-app-version`
-2. Extract current version, update code, regenerate ZIP
+1. Suggest `/package-app` — it handles both new apps and version bumps
+2. It will detect the existing version, extract, rename, and repackage
 3. Suggest `/validate-commerce-app` before submitting
 4. Suggest `/submit-app-pr` when ready
 ```
@@ -213,11 +212,11 @@ Scenario 3: Avalara v0.3.0 with avalara.png (hash: xyz789)
 
 ### Version Updates
 - **User mentions:** "new version", "update version", "bump version", "release"
-- **Suggest:** `/update-app-version`
+- **Suggest:** `/package-app`
 
-### Inspection/Review
-- **User mentions:** "what's inside", "check ZIP", "review", "inspect"
-- **Suggest:** `/extract-and-inspect`
+### Extraction/Review
+- **User mentions:** "what's inside", "extract", "unzip", "look at", "inspect"
+- **Suggest:** `/extract-app`
 
 ### Comparison
 - **User mentions:** "what changed", "diff", "compare versions", "changelog"
@@ -428,7 +427,7 @@ The `domain` field in manifest entries and `commerce-app.json` must be one of th
 
 **Quick Update:**
 ```
-/update-app-version
+/package-app
   → /validate-commerce-app
   → /submit-app-pr
 ```
@@ -443,16 +442,16 @@ The `domain` field in manifest entries and `commerce-app.json` must be one of th
 
 **Debugging:**
 ```
-/extract-and-inspect
+/extract-app
   → (identify issues)
   → (fix issues)
-  → /generate-commerce-app
-  → /validate-commerce-app
+  → /package-app
+  → /validate-app
 ```
 
 **Review Process:**
 ```
-/extract-and-inspect
+/extract-app
   → /compare-app-versions
   → (review changes)
   → Approve or request changes
@@ -532,7 +531,7 @@ A: Run `/validate-commerce-app` to check everything, then `/submit-app-pr` to cr
 A: Only 3 files: `{app-name}-v{version}.zip`, `manifest.json`, `catalog.json` (new apps only). Never commit extracted directories.
 
 **Q: "How do I update to a new version?"**
-A: Use `/update-app-version` - it handles extracting, updating version numbers, regenerating ZIP, and computing new hash.
+A: Use `/package-app` - it handles extracting, updating version numbers, regenerating ZIP, and computing new hash.
 
 **Q: "The CI is failing with SHA256 mismatch"**
 A: The hash in manifest.json doesn't match the ZIP. Run `/generate-commerce-app` to regenerate with correct hash.

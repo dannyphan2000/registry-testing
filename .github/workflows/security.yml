@@ -1,0 +1,72 @@
+name: Security Review
+
+permissions:
+  pull-requests: write  # Needed for leaving PR comments
+  contents: read
+
+on:
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Extract Commerce App Packages
+        run: |
+          for zip in $(git diff --diff-filter=A --name-only HEAD~1 -- '*.zip'); do
+            if [ -f "$zip" ]; then
+              dir="${zip%.zip}-extracted"
+              mkdir -p "$dir"
+              unzip -o "$zip" -d "$dir"
+            fi
+          done
+
+      - name: Scan for prompt injection patterns
+        run: |
+          INJECTION_PATTERNS=(
+            'ignore previous instructions'
+            'ignore all instructions'
+            'ignore the above'
+            'disregard.*instructions'
+            'forget your (instructions|rules|prompt)'
+            'you are now'
+            'new instructions:'
+            'system prompt'
+            'IMPORTANT:.*override'
+            'assistant:'
+            '<\|im_start\|>'
+            'Human:'
+            'A]:'
+          )
+          pattern=$(IFS='|'; echo "${INJECTION_PATTERNS[*]}")
+          matches=$(grep -r -i -n -E "$pattern" --include='*.js' --include='*.json' --include='*.xml' --include='*.ts' --include='*.jsx' --include='*.tsx' *-extracted/ 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Potential prompt injection detected. Skipping AI security review."
+            echo "$matches"
+            echo "INJECTION_FOUND=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Stage extracted files for diff analysis
+        if: env.INJECTION_FOUND != 'true'
+        run: git add -A
+
+      - uses: anthropics/claude-code-security-review@main
+        if: env.INJECTION_FOUND != 'true'
+        with:
+          comment-pr: true
+          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
+          custom-security-scan-instructions: |
+            The PR contains Commerce App Packages (CAPs) as ZIP files. The ZIPs
+            have been extracted into *-extracted/ directories. Focus your analysis
+            on the extracted contents, specifically:
+            - Hook scripts under cartridges/ that handle tax, payment, or shipping
+            - SFCC Script API misuse (dw.io.File, dw.net.HTTPClient, dw.system.System)
+            - Data exfiltration via service calls sending customer/basket PII to undeclared endpoints
+            - XSS in storefront-next components (dangerouslySetInnerHTML, unescaped user input)
+            - Impex XML with hardcoded credentials or overly permissive service configurations
+            - Hook contract violations: side effects outside the app's declared domain
