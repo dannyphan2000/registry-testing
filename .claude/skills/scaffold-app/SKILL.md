@@ -119,22 +119,20 @@ Read templates from `assets/templates/`, replace placeholders, and write to app 
 Generate merchant-facing tasks that guide post-installation setup and verification. These are steps merchants complete after installing the app.
 
 ```json
-{
-  "tasks": [
-    {
-      "id": "setup-credentials",
-      "title": "Configure API Credentials",
-      "description": "Add your [vendor] API key in Business Manager > Merchant Tools > Custom Site Preferences",
-      "completed": false
-    },
-    {
-      "id": "test-integration",
-      "title": "Test Integration in Sandbox",
-      "description": "Process a test order to verify the integration is working correctly",
-      "completed": false
-    }
-  ]
-}
+[
+  {
+    "name": "Configure API Credentials",
+    "description": "Add your [vendor] API key in Business Manager > Merchant Tools > Custom Site Preferences.",
+    "link": "/on/demandware.store/Sites-Site/default/ViewApplication-BM?SelectedMenuItem=site-prefs_custom_prefs",
+    "taskNumber": "1"
+  },
+  {
+    "name": "Test Integration in Sandbox",
+    "description": "Process a test order to verify the integration is working correctly.",
+    "link": "",
+    "taskNumber": "2"
+  }
+]
 ```
 
 Tailor tasks to domain for merchant post-installation:
