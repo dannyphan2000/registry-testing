@@ -1,18 +1,4 @@
 {
-  "permissions": {
-    "allow": [
-      "Edit(/.claude/skills/package-app/**)",
-      "Edit(/.claude/skills/validate-app/**)",
-      "Bash(unzip -l /Users/d.phan/Desktop/registry-testing/address-verification/loqate-address-verification/loqate-address-verification-v2.0.0.zip)",
-      "Bash(unzip -q loqate-address-verification-v2.0.0.zip)",
-      "Edit(/.claude/skills/submit-app/**)",
-      "Edit(/.claude/skills/scaffold-app/**)",
-      "Edit(/.claude/skills/validate-impex/**)"
-    ],
-    "additionalDirectories": [
-      "/Users/d.phan/Desktop/registry-testing/.claude/skills/submit-app"
-    ]
-  },
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true
   }
