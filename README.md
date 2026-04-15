@@ -55,7 +55,7 @@ If you're using Claude Code, we provide comprehensive skills to streamline devel
 
 **Submit to registry:**
 ```
-/submit-pr
+/submit-app
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for complete skill documentation.
@@ -210,7 +210,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for complete submission requirements and 
 3. **Generate impex:** `/generate-service-impex`, `/generate-site-preferences-impex`
 4. **Package app:** `/package-app`
 5. **Validate:** `/validate-app`
-6. **Submit PR:** `/submit-pr`
+6. **Submit PR:** `/submit-app`
 
 **Manual Process:**
 
@@ -264,13 +264,11 @@ This repository includes comprehensive skills for Commerce App development:
 - `/generate-custom-object-impex` - Custom object types
 - `/validate-impex` - Validate all impex files
 
-**Validation & Inspection:**
+**Validation:**
 - `/validate-app` - Comprehensive architecture-aware validation (structure, manifest, impex, icons, translations)
-- `/extract-app` - Extract a commerce app ZIP for development or modification
-- `/diff-versions` - Compare versions for changelogs
 
 **Submission:**
-- `/submit-pr` - Guide through PR submission process with automated GitHub CLI integration
+- `/submit-app` - Guide through PR submission process with automated GitHub CLI integration
 
 ### External Contributors
 

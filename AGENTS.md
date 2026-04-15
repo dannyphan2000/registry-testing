@@ -37,8 +37,8 @@ commerce-{app-name}-app-v{version}/  # Extracted directory (dev only)
 ### App Development & Packaging
 | Skill | When to Use | What It Does |
 |-------|-------------|--------------|
-| `/scaffold-commerce-app` | Starting a new app from scratch | Generates complete directory structure with templates |
-| `/generate-commerce-app` | Ready to package app for registry | Creates ZIP, updates manifest.json with SHA256 |
+| `/scaffold-app` | Starting a new app from scratch | Generates complete directory structure with templates |
+| `/package-app` | Ready to package app for registry | Creates ZIP, updates manifest.json with SHA256 |
 
 ### Impex Generation
 | Skill | When to Use | What It Does |
@@ -48,17 +48,15 @@ commerce-{app-name}-app-v{version}/  # Extracted directory (dev only)
 | `/generate-custom-object-impex` | Need data storage (cache, config, logs) | Creates custom object type definitions with storage config |
 | `/validate-impex` | Before importing or submitting | Validates XML syntax, structure, install/uninstall pairs |
 
-### Validation & Inspection
+### Validation
 | Skill | When to Use | What It Does |
 |-------|-------------|--------------|
-| `/validate-commerce-app` | Before submitting PR | Validates ZIP structure, manifest, SHA256, commerce-app.json |
-| `/extract-app` | Extracting a ZIP for development or review | Extracts ZIP to app directory |
-| `/compare-app-versions` | Code review or changelog generation | Compares two versions to see what changed |
+| `/validate-app` | Before submitting PR | Validates ZIP structure, manifest, SHA256, commerce-app.json, impex, architecture |
 
 ### Submission
 | Skill | When to Use | What It Does |
 |-------|-------------|--------------|
-| `/submit-app-pr` | Ready to submit app to registry | Guides through PR creation with proper format and checklist |
+| `/submit-app` | Ready to submit app to registry | Guides through PR creation with proper format and checklist |
 
 ## Common Workflows
 
@@ -68,12 +66,12 @@ commerce-{app-name}-app-v{version}/  # Extracted directory (dev only)
 User: "I want to build a ratings and reviews app"
 
 Your response:
-1. Suggest `/scaffold-commerce-app`
+1. Suggest `/scaffold-app`
 2. Gather info: domain (ratings-and-reviews), ISV name, app details
 3. After scaffolding, guide them to build their app code
 4. Suggest `/generate-service-impex` for API integration
 5. Suggest `/generate-site-preferences-impex` for settings
-6. When ready: `/generate-commerce-app` → `/validate-commerce-app` → `/submit-app-pr`
+6. When ready: `/package-app` → `/validate-app` → `/submit-app`
 ```
 
 ### Workflow 2: Update Existing App
@@ -83,9 +81,9 @@ User: "I need to release version 1.0.1 of my app"
 
 Your response:
 1. Suggest `/package-app` — it handles both new apps and version bumps
-2. It will detect the existing version, extract, rename, and repackage
-3. Suggest `/validate-commerce-app` before submitting
-4. Suggest `/submit-app-pr` when ready
+2. It will detect the existing version and repackage appropriately
+3. Suggest `/validate-app` before submitting
+4. Suggest `/submit-app` when ready
 ```
 
 ### Workflow 3: Generate Impex Files
@@ -106,10 +104,9 @@ Your response:
 User: "Is my app ready to submit?"
 
 Your response:
-1. Run `/validate-commerce-app` - checks ZIP, manifest, structure
-2. Run `/validate-impex` - checks all XML files
-3. Review checklist from CONTRIBUTING.md
-4. If all pass, suggest `/submit-app-pr`
+1. Run `/validate-app` - comprehensive checks including ZIP, manifest, structure, impex
+2. Review checklist from CONTRIBUTING.md
+3. If all pass, suggest `/submit-app`
 ```
 
 ## Critical Rules & Conventions
@@ -188,11 +185,11 @@ Scenario 3: Avalara v0.3.0 with avalara.png (hash: xyz789)
 
 ### Starting Fresh
 - **User mentions:** "new app", "start building", "create app", "scaffold"
-- **Suggest:** `/scaffold-commerce-app`
+- **Suggest:** `/scaffold-app`
 
 ### Packaging
 - **User mentions:** "package", "create ZIP", "ready to submit", "build registry package"
-- **Suggest:** `/generate-commerce-app`
+- **Suggest:** `/package-app`
 
 ### Service Integration
 - **User mentions:** "API", "external service", "third-party", "integration", "webhook", "credentials"
@@ -208,23 +205,15 @@ Scenario 3: Avalara v0.3.0 with avalara.png (hash: xyz789)
 
 ### Validation
 - **User mentions:** "check", "validate", "verify", "ready?", "errors", "problems"
-- **Suggest:** `/validate-commerce-app` and/or `/validate-impex`
+- **Suggest:** `/validate-app` (includes impex validation) or `/validate-impex` for impex-only checks
 
 ### Version Updates
 - **User mentions:** "new version", "update version", "bump version", "release"
 - **Suggest:** `/package-app`
 
-### Extraction/Review
-- **User mentions:** "what's inside", "extract", "unzip", "look at", "inspect"
-- **Suggest:** `/extract-app`
-
-### Comparison
-- **User mentions:** "what changed", "diff", "compare versions", "changelog"
-- **Suggest:** `/compare-app-versions`
-
 ### Submission
 - **User mentions:** "submit", "pull request", "PR", "contribute", "publish"
-- **Suggest:** `/submit-app-pr`
+- **Suggest:** `/submit-app`
 
 ## catalog.json Rules
 
@@ -414,22 +403,21 @@ The `domain` field in manifest entries and `commerce-app.json` must be one of th
 
 **Full App Development:**
 ```
-/scaffold-commerce-app
+/scaffold-app
   → Build app code
   → /generate-service-impex
   → /generate-site-preferences-impex
   → /generate-custom-object-impex (if needed)
-  → /validate-impex
-  → /generate-commerce-app
-  → /validate-commerce-app
-  → /submit-app-pr
+  → /package-app
+  → /validate-app
+  → /submit-app
 ```
 
 **Quick Update:**
 ```
 /package-app
-  → /validate-commerce-app
-  → /submit-app-pr
+  → /validate-app
+  → /submit-app
 ```
 
 **Add Configuration:**
@@ -437,24 +425,7 @@ The `domain` field in manifest entries and `commerce-app.json` must be one of th
 /generate-site-preferences-impex
   → /validate-impex
   → (rebuild app)
-  → /generate-commerce-app
-```
-
-**Debugging:**
-```
-/extract-app
-  → (identify issues)
-  → (fix issues)
   → /package-app
-  → /validate-app
-```
-
-**Review Process:**
-```
-/extract-app
-  → /compare-app-versions
-  → (review changes)
-  → Approve or request changes
 ```
 
 ## Validation Checklist
@@ -492,7 +463,7 @@ Before suggesting `/submit-app-pr`, verify:
 ## Helping Developers Effectively
 
 ### 1. Be Proactive
-- When user starts building an app, suggest `/scaffold-commerce-app`
+- When user starts building an app, suggest `/scaffold-app`
 - When they mention services, suggest `/generate-service-impex`
 - Always suggest validation before submission
 
@@ -513,19 +484,19 @@ Before suggesting `/submit-app-pr`, verify:
 
 ### 5. Use the Right Tools
 - Don't manually parse XML when `/validate-impex` exists
-- Don't manually compute hashes when `/generate-commerce-app` does it
+- Don't manually compute hashes when `/package-app` does it
 - Don't manually write boilerplate when skills generate it
 
 ## Common Questions & Answers
 
 **Q: "How do I start a new ratings app?"**
-A: Use `/scaffold-commerce-app` and provide: domain=`ratings-and-reviews`, ISV name, app details. It generates the complete structure.
+A: Use `/scaffold-app` and provide: domain=`ratings-and-reviews`, ISV name, app details. It generates the complete structure.
 
 **Q: "How do I add API integration?"**
 A: Use `/generate-service-impex` - it creates both install and uninstall service configs with proper authentication, rate limiting, and circuit breakers.
 
 **Q: "My ZIP is ready, what's next?"**
-A: Run `/validate-commerce-app` to check everything, then `/submit-app-pr` to create the PR with proper formatting.
+A: Run `/validate-app` to check everything, then `/submit-app` to create the PR with proper formatting.
 
 **Q: "What files should I commit?"**
 A: Only 3 files: `{app-name}-v{version}.zip`, `manifest.json`, `catalog.json` (new apps only). Never commit extracted directories.
@@ -534,7 +505,7 @@ A: Only 3 files: `{app-name}-v{version}.zip`, `manifest.json`, `catalog.json` (n
 A: Use `/package-app` - it handles extracting, updating version numbers, regenerating ZIP, and computing new hash.
 
 **Q: "The CI is failing with SHA256 mismatch"**
-A: The hash in manifest.json doesn't match the ZIP. Run `/generate-commerce-app` to regenerate with correct hash.
+A: The hash in manifest.json doesn't match the ZIP. Run `/package-app` to regenerate with correct hash.
 
 **Q: "Can I modify catalog.json?"**
 A: Depends on what you're doing:

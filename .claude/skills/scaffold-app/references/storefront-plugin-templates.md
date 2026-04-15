@@ -56,37 +56,6 @@ cat src/extensions/README.md
 
 **Always verify target IDs exist** before using them. Non-existent targets will cause components to never render.
 
-## Copyright Headers
-
-**REQUIRED:** All SFNext .ts/.tsx files must start with this Apache 2.0 header (lint requirement):
-
-```typescript
-/**
- * Copyright {{CURRENT_YEAR}} {{vendorName}}
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-```
-
-**Key points:**
-- `{{CURRENT_YEAR}}`: Use current year (2026)
-- `{{vendorName}}`: Use ISV/vendor name from app creation (e.g., "Acme Corp")
-- ISVs retain copyright on their apps (not Salesforce - registry and apps are separate works)
-- Add to all `.ts` and `.tsx` files in `storefront-next/src/extensions/{{appName}}/`
-- Place before 'use client' directive and imports
-
-**Note:** All template examples below omit the copyright header for brevity. Always add it as the first lines of each file.
-
 ## Index Barrel File
 
 **File:** `storefront-next/src/extensions/{{appName}}/index.ts`
@@ -123,8 +92,6 @@ import { AppNameProvider, useAppNameContext } from '@/extensions/appName';  // P
 **File:** `storefront-next/src/extensions/{{appName}}/components/{{ComponentName}}.tsx`
 
 ```typescript
-'use client';
-
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -175,8 +142,6 @@ export default function {{ComponentName}}({ className, data }: {{ComponentName}}
 **File:** `storefront-next/src/extensions/{{appName}}/providers/{{AppName}}Provider.tsx`
 
 ```typescript
-'use client';
-
 import React, { createContext, useContext, type ReactNode, type ReactElement } from 'react';
 
 interface {{AppName}}ContextType {
@@ -229,8 +194,6 @@ export function use{{AppName}}Context(): {{AppName}}ContextType {
 If your provider needs access to configuration (API keys, settings, etc.), use this pattern:
 
 ```typescript
-'use client';
-
 import React, { createContext, useContext, useState, useEffect, type ReactNode, type ReactElement } from 'react';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 
@@ -518,8 +481,6 @@ The double underscore (`__`) navigates nested config paths:
 **In components (client-side):**
 
 ```typescript
-'use client';
-
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
@@ -980,7 +941,6 @@ storefront-next/src/extensions/product-reviews/
 
 ### TypeScript & Structure
 - [ ] All files use TypeScript (.ts/.tsx), not JavaScript
-- [ ] **All components include `'use client'` directive** before imports
 - [ ] **No tsconfig.json at extension level** - extensions inherit from parent Storefront Next
 - [ ] **No Tailwind config files** - use `@theme inline` with CSS 4
 - [ ] target-config.json uses correct format (components array with targetId/path/order)

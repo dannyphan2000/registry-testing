@@ -158,9 +158,7 @@ For site preferences, invoke `/generate-site-preferences-impex` skill.
 - Test files (`.test.tsx`) for component testing (vi.mock MUST be outside describe/it blocks)
 
 **Important:** All storefront files must use TypeScript (.ts/.tsx), not JavaScript. The extension system requires:
-- **Apache 2.0 copyright header** at the top of every .ts/.tsx file (before 'use client' directive) with ISV/vendor name and current year
 - Proper type annotations and interfaces
-- **All components MUST include `'use client'` directive** at the top (after copyright header, before imports) for client-side interactivity
 - Components and providers MUST use default export (extension system uses dynamic imports)
 - Use `import type` for ALL types/interfaces (React types, custom types); regular `import` only for runtime values
 - Context providers registered in target-config.json (not inline wrapping)
@@ -177,7 +175,6 @@ For site preferences, invoke `/generate-site-preferences-impex` skill.
 - ❌ No hardcoded Salesforce version numbers in dependencies
 - ❌ No direct color/spacing values in components (use theme variables)
 - ❌ No `importPackage()` in hook implementations (use `require()`)
-- ❌ No components without `'use client'` directive
 
 See `references/storefront-plugin-templates.md` for complete extension templates.
 
@@ -202,8 +199,6 @@ Check:
 - [ ] Backend apps: package.json includes `"hooks": "cartridge/scripts/hooks.json"` field
 - [ ] Backend apps: Hook implementations use `require()` not `importPackage()`, always return dw.system.Status
 - [ ] UI apps: storefront-next structure with target-config.json, TypeScript components, tests
-- [ ] UI apps: **All .ts/.tsx files include Apache 2.0 copyright header** with ISV/vendor name and current year
-- [ ] UI apps: **All components include `'use client'` directive** after copyright header, before imports
 - [ ] UI apps: index.ts barrel file, **all three locale files** (en-US, en-GB, it-IT), i18n usage with useTranslation
 - [ ] UI apps: Configuration uses `useConfig<AppConfig>()` with **direct property access** (never `.get()` method), PUBLIC__ env vars
 - [ ] UI apps: Verify target IDs exist in codebase (check Complete Target ID Reference)
@@ -245,7 +240,7 @@ Get started: cd <domain>/<appName>/commerce-<appName>-app-v<version>
 - Use templates from `assets/templates/` - they include proper structure and error handling
 - **Multi-target approach:** Commerce apps typically span multiple UI targets, not single components. Ask about all needed targets (e.g., checkout flow + order summary + header) and generate all component shells together.
 - **Task list and icons:** Always generate `app-configuration/tasksList.json` with merchant-facing post-installation tasks (credential setup, testing, verification). Remind vendors to customize the task list for their app and **add app icon to icons/ directory before submission** (PNG, 512x512px recommended).
-- **UI-only apps:** Use TypeScript (.tsx) for all components with proper type annotations. **All .ts/.tsx files must start with Apache 2.0 copyright header** (ISV/vendor name, current year), followed by **`'use client'` directive** for components. Focus on component reusability with clear prop interfaces. Must include tests (.test.tsx) for coverage enforcement. Always use `useTranslation()` for i18n - never hardcode strings. **Generate all three locales** (en-US, en-GB, it-IT) with identical key structures. Configuration uses `useConfig<AppConfig>()` with **direct property access** (`appConfig.extension?.appName?.key || defaultValue`), never `.get()` method. PUBLIC__ env vars follow double underscore convention. **Follow Prettier and ESLint rules:** 4-space indentation, trailing commas, parentheses around arrow params, single quotes, consistent type imports, no duplicate imports, no array index keys, no hardcoded Tailwind colors, no console statements, useCallback proper indentation. **Never generate Tailwind config files** - use `@theme inline`.
+- **UI-only apps:** Use TypeScript (.tsx) for all components with proper type annotations. Focus on component reusability with clear prop interfaces. Must include tests (.test.tsx) for coverage enforcement. Always use `useTranslation()` for i18n - never hardcode strings. **Generate all three locales** (en-US, en-GB, it-IT) with identical key structures. Configuration uses `useConfig<AppConfig>()` with **direct property access** (`appConfig.extension?.appName?.key || defaultValue`), never `.get()` method. PUBLIC__ env vars follow double underscore convention. **Follow Prettier and ESLint rules:** 4-space indentation, trailing commas, parentheses around arrow params, single quotes, consistent type imports, no duplicate imports, no array index keys, no hardcoded Tailwind colors, no console statements, useCallback proper indentation. **Never generate Tailwind config files** - use `@theme inline`.
 - **Storefront extension system:** Register components via target-config.json using `targetId`, `path`, `order` fields. Context providers go in `contextProviders` array, not inline wrapping. Locales use `locales/{locale}/translations.json` structure. **Always verify targetId exists** using the Complete Target ID Reference in storefront-plugin-templates.md - non-existent targets cause components to never render.
 - **Backend apps:** Need comprehensive error handling and logging for production debugging. **Hook implementations must use `require()` not `importPackage()`**, always return `dw.system.Status` (never undefined). **package.json must include `"hooks": "cartridge/scripts/hooks.json"` field.** Generate **both install/ and uninstall/ impex directories** for safe merchant lifecycle management.
 - **Fullstack apps:** Maintain separation - UI in storefront-next/, business logic in cartridges/
