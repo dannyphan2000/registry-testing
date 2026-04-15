@@ -9,159 +9,47 @@ description: >-
   directory that needs packaging - don't wait for explicit requests.
 ---
 
-# Generate Commerce App Package
+# Package Commerce App
 
-Build a registry-ready Commerce App Package (CAP) ZIP from an app directory. Handles both new apps and version updates.
-
-## Reference implementation
-
-Use `tax/avalara-tax/` as the canonical reference. Extract the latest ZIP to study the structure before generating.
+Build a registry-ready Commerce App Package (CAP) ZIP from an app directory.
 
 ## Step 1: Collect inputs
 
-Gather from the user (or infer from context):
-
 | Input | Example | Required |
 |-------|---------|----------|
-| App name (kebab-case) | `avalara-tax` | Yes |
+| App name | `avalara-tax` | Yes |
 | Display name | `Avalara Tax` | Yes |
-| Domain | `tax` | Yes (one of: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`, `loyalty`, `search`, `address-verification`, `analytics`, `approaching-discounts`, `fraud`) |
+| Domain | `tax` | Yes |
 | Version | `0.2.8` | Yes |
-| Description | `Automated tax compliance by Avalara` | Yes |
+| Description | Short description | Yes |
 | Publisher name | `Avalara` | Yes |
 | Publisher URL | `https://developer.avalara.com/` | Yes |
 
-**Folder Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. See `references/folder-structure.md` for validation rules and common mistakes.
+**Valid domains:** `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`, `loyalty`, `search`, `address-verification`, `analytics`, `approaching-discounts`, `fraud`
 
-## Step 2: Check version and determine strategy
+**Structure:** Apps must be at `{domain}/{appName}/` where `{appName}` matches the "id" field. See `references/folder-structure.md`.
 
-**CRITICAL:** Before proceeding, check if this is a new app or an update to an existing app.
+## Step 2: Version strategy
 
-1. **Check for existing catalog.json:**
-   ```bash
-   cat <domain>/<appName>/catalog.json
-   ```
+Check for existing `catalog.json`:
 
-2. **Determine versioning strategy:**
-
-   - **IF catalog.json does NOT exist:**
-     - This is a brand new app
-     - Proceed with the version from commerce-app.json
-     - Skip to Step 3
-
-   - **IF catalog.json shows `"latest": { "version": "INIT" }` AND `"versions": []`:**
-     - Version hasn't been published yet
-     - **ASK USER:** "The current version `<version>` hasn't been published. Do you want to:"
-       1. Replace `<version>` with your changes (recommended if no one has it)
-       2. Bump to a new version (e.g., `<next-version>`) for better tracking
-     - Wait for user choice before proceeding
-
-   - **IF the version from commerce-app.json EXISTS in catalog.json's `versions` array:**
-     - **FORCE VERSION BUMP** - no option to replace
-     - **STOP and tell the user:** "Version `<version>` already exists in catalog.json and cannot be replaced. Please bump to a new version."
-     - **ASK USER:** "What version should this release be? (e.g., `<suggested-next-version>`)"
-     - Use semantic versioning: **major** (breaking), **minor** (new features), **patch** (bug fixes)
-     - Do NOT proceed until user provides a new version number
-
-3. **If bumping an existing version and no app directory exists yet**, extract the current ZIP:
-   ```bash
-   cd <domain>/<appName>/
-   unzip -q <appName>-v<currentVersion>.zip
-   mv commerce-<appName>-app-v<currentVersion>/ commerce-<appName>-app-v<newVersion>/
-   ```
-
-4. **Version validation rules:**
-   - If version exists in `catalog.json` versions → MUST bump version (no exceptions)
-   - Always confirm version with user before generating ZIP
-   - Never silently change version without explicit user approval
-
-## Step 3: Verify directory structure and detect architecture
-
-The extracted app directory must be named `commerce-<appName>-app-v<version>/`.
-
-**Detect architecture type:**
 ```bash
-cd <domain>/<appName>/
-
-# Check for storefront-next
-HAS_UI=$(find commerce-<appName>-app-v<version>/ -type d -name "storefront-next" | wc -l)
-
-# Check for cartridges
-HAS_BACKEND=$(find commerce-<appName>-app-v<version>/ -type d -name "cartridges" | wc -l)
-
-# Determine architecture
-if [ $HAS_UI -gt 0 ] && [ $HAS_BACKEND -eq 0 ]; then
-    echo "UI-only"
-elif [ $HAS_BACKEND -gt 0 ] && [ $HAS_UI -eq 0 ]; then
-    echo "Backend-only"
-elif [ $HAS_UI -gt 0 ] && [ $HAS_BACKEND -gt 0 ]; then
-    echo "Fullstack"
-fi
+cat <domain>/<appName>/catalog.json
 ```
 
-**Expected structure by architecture:**
+**Decision tree:**
+- **No catalog.json:** New app → proceed with version from commerce-app.json
+- **catalog.json with `"latest": {"version": "INIT"}` and `"versions": []`:** Ask user to replace or bump
+- **Version EXISTS in catalog.json versions array:** MUST bump - ask user for new version
 
-### All Architectures (Required)
-```
-commerce-<appName>-app-v<version>/
-├── commerce-app.json              # App identity & metadata
-├── README.md                      # Documentation
-├── app-configuration/
-│   └── tasksList.json             # Merchant post-install checklist
-└── icons/                         # App icon (recommended)
-```
+**Version validation:**
+- Published versions cannot be replaced
+- Always confirm version with user
+- Use semantic versioning: major.minor.patch
 
-### UI-only Architecture
-```
-commerce-<appName>-app-v<version>/
-├── (all base files above)
-└── storefront-next/src/extensions/<app-name>/
-    ├── target-config.json         # Extension target mappings
-    ├── index.ts                   # Barrel exports
-    ├── components/                # React components (.tsx)
-    ├── hooks/                     # Custom React hooks
-    ├── providers/                 # Context providers
-    ├── locales/                   # i18n (en-US, en-GB, it-IT)
-    └── tests/                     # Component tests
-```
+## Step 3: Update commerce-app.json
 
-### Backend-only Architecture
-```
-commerce-<appName>-app-v<version>/
-├── (all base files above)
-├── cartridges/
-│   ├── site_cartridges/<cartridge_name>/
-│   │   ├── package.json           # Hooks path, test scripts
-│   │   ├── cartridge/scripts/
-│   │   │   ├── hooks.json         # Hook → script mappings
-│   │   │   ├── hooks/             # Hook implementations
-│   │   │   ├── helpers/           # Business logic
-│   │   │   └── services/          # Service wrappers
-│   │   └── test/                  # Unit tests
-│   └── bm_cartridges/<bm_name>/   # BM extensions (optional)
-└── impex/
-    ├── install/
-    │   ├── services.xml           # Service definitions
-    │   ├── meta/system-objecttype-extensions.xml  # Site prefs
-    │   └── sites/SITEID/preferences.xml
-    └── uninstall/
-        └── services.xml           # Service cleanup
-```
-
-### Fullstack Architecture
-```
-commerce-<appName>-app-v<version>/
-├── (all base files above)
-├── storefront-next/               # UI files (as in UI-only)
-├── cartridges/                    # Backend files (as in Backend-only)
-└── impex/                         # Backend config (as in Backend-only)
-```
-
-Validate that every file referenced by the code actually exists and architecture-specific directories are correct.
-
-## Step 4: Update commerce-app.json
-
-This file provides package-level identity. Update it to match the current version:
+Ensure version matches throughout:
 
 ```json
 {
@@ -179,36 +67,24 @@ This file provides package-level identity. Update it to match the current versio
 }
 ```
 
-## Step 5: Security & quality pre-check
+## Step 4: Run validation
 
-**CRITICAL:** Before packaging, run the security scan to catch issues early:
+**CRITICAL:** Validate before packaging:
 
-```bash
-bash .github/scripts/security-scan.sh <domain>/<appName>/commerce-<appName>-app-v<version>/
+```
+/validate-app
 ```
 
-**If blocking findings (exit code 1):** Stop here — do not generate ZIP. Help fix issues first.
-**If warnings only:** Continue packaging but report for review.
+Checks architecture, structure, manifest, impex, icons, translations, and security. Address all failures before continuing.
 
-See `references/security-scan.md` for complete list of blocking and warning findings.
-
-## Step 6: Delete old ZIP versions
-
-**CRITICAL:** Before generating the new ZIP, delete any existing ZIP files for this app to avoid clutter:
+## Step 5: Delete old ZIPs
 
 ```bash
 cd <domain>/<appName>/
 rm -f <appName>-v*.zip
 ```
 
-This ensures:
-- Only the latest version is in the repository
-- No confusion about which ZIP is current
-- Clean git status
-
-## Step 7: Generate the ZIP
-
-Run from the **parent directory** of the app folder so the root entry is `commerce-<appName>-app-v<version>/`:
+## Step 6: Generate ZIP
 
 ```bash
 cd <domain>/<appName>/
@@ -216,32 +92,25 @@ zip -r <appName>-v<version>.zip commerce-<appName>-app-v<version>/ \
   -x "*.DS_Store" -x "__MACOSX/*" -x "*/.*" -x "Thumbs.db"
 ```
 
-Verify the ZIP:
-1. Run `unzip -l <appName>-v<version>.zip` and confirm:
-   - Single root folder: `commerce-<appName>-app-v<version>/`
-   - No `tax/` or other registry path prefixes leaking in
-   - No `.DS_Store`, `__MACOSX`, or hidden files
-   - No duplicate directory trees
-   - Architecture-specific directories present:
-     - UI-only: Has `storefront-next/`, NO `cartridges/` or `impex/`
-     - Backend-only: Has `cartridges/` and `impex/`, NO `storefront-next/`
-     - Fullstack: Has `storefront-next/`, `cartridges/`, AND `impex/`
+Verify structure:
+```bash
+unzip -l <appName>-v<version>.zip | head -20
+```
 
-## Step 8: Compute SHA256 hash
+Confirm:
+- Single root: `commerce-<appName>-app-v<version>/`
+- No junk files
+- Architecture-specific directories present
 
-Generate the hash for the ZIP:
+## Step 7: Compute hash
 
 ```bash
 shasum -a 256 <domain>/<appName>/<appName>-v<version>.zip
 ```
 
-Copy the hex digest (the long string before the filename).
+## Step 8: Update root manifest
 
-## Step 9: Update root manifest
-
-**CRITICAL:** Update the root manifest at `commerce-apps-manifest/manifest.json`:
-
-Find the entry for your app in the appropriate domain array (e.g., `tax`, `payment`, `gift-cards`) and update it:
+Update `commerce-apps-manifest/manifest.json`:
 
 ```json
 {
@@ -258,121 +127,54 @@ Find the entry for your app in the appropriate domain array (e.g., `tax`, `payme
 }
 ```
 
-**Icon Name Matching:** The `iconName` field must match the actual icon filename in the ZIP's `icons/` directory (e.g., if ZIP contains `icons/avalara.png`, use `"iconName": "avalara.png"`). The CI workflow extracts icons by filename, so mismatches will break icon references.
+**Icon:** Must match filename in ZIP's `icons/` directory. CI extracts automatically.
 
-Valid domains: `tax`, `payment`, `shipping`, `gift-cards`, `ratings-and-reviews`, `loyalty`, `search`, `address-verification`, `analytics`, `approaching-discounts`, `fraud`.
+## Step 9: Add translations
 
-**For new apps:** Add a new entry to the appropriate domain array.
-**For updates:** Update the existing entry's `version`, `zip`, and `sha256` fields.
+Update `commerce-apps-manifest/translations/en-US.json` (minimum):
 
-## Step 10: Add translations to manifest
-
-**CRITICAL:** Add app name and description translations to ALL locale files in `commerce-apps-manifest/translations/`:
-
-For each locale file (en-US.json, de.json, fr.json, es.json, it.json, ja.json, ko.json, nl.json, pl.json, pt.json, zh_CN.json, zh_TW.json, ar_MA.json):
-
-1. Read the locale file:
-   ```bash
-   cat commerce-apps-manifest/translations/en-US.json
-   ```
-
-2. Add your app's translation entry (use jq or manual edit):
-   ```bash
-   jq '. + {"<appName>": {"name": "<displayName>", "description": "<description>"}}' \
-     commerce-apps-manifest/translations/en-US.json > temp.json && \
-     mv temp.json commerce-apps-manifest/translations/en-US.json
-   ```
-
-3. Repeat for all locale files (at minimum, update en-US.json)
-
-**Translation structure:**
-```json
-{
-  "<appName>": {
-    "name": "<displayName>",
-    "description": "<description>"
-  }
-}
+```bash
+jq '. + {"<appName>": {"name": "<displayName>", "description": "<description>"}}' \
+  commerce-apps-manifest/translations/en-US.json > temp.json && \
+  mv temp.json commerce-apps-manifest/translations/en-US.json
 ```
 
-**Best practice:** For non-English locales, either:
-- Provide translated name/description
-- Use English values as fallback (better than missing entry)
+Repeat for other locales or use English as fallback.
 
-## Step 11: Handle catalog.json
+## Step 10: Handle catalog.json
 
-- **Existing app**: Do not modify `catalog.json` — CI updates it on merge.
-- **Brand new app**: Create `catalog.json` next to the ZIP:
+- **Existing app:** Don't modify - CI updates on merge
+- **New app:** Create with INIT values:
 
 ```json
 {
-  "latest": {
-    "version": "INIT",
-    "tag": "INIT"
-  },
+  "latest": {"version": "INIT", "tag": "INIT"},
   "versions": []
 }
 ```
 
-## Step 12: Final validation checklist
+## Step 11: Final validation
 
-**All architectures:**
-- [ ] App is located at `<domain>/<appName>/` where `<appName>` matches the "id" field in manifest.json
-- [ ] ZIP name matches `<appName>-v<version>.zip`
-- [ ] ZIP contains a single root folder `commerce-<appName>-app-v<version>/`
-- [ ] No junk files (`.DS_Store`, `__MACOSX`, hidden files)
-- [ ] `commerce-app.json` version matches the ZIP version
-- [ ] `app-configuration/tasksList.json` exists with merchant post-installation tasks
-- [ ] `commerce-apps-manifest/manifest.json` is updated with correct version and hash
-- [ ] `sha256` in root manifest matches the actual ZIP hash
-- [ ] **App icon exists in `commerce-<appName>-app-v<version>/icons/`** (CI will extract it automatically)
-- [ ] **Icon filename in ZIP matches the `iconName` field in root manifest exactly**
-- [ ] **Translations added to all locale files in `commerce-apps-manifest/translations/`** (at minimum en-US.json)
-- [ ] `catalog.json` included only for brand new apps
-- [ ] Architecture detected correctly (UI-only, Backend-only, or Fullstack)
+```
+/validate-app
+```
 
-**UI-only or Fullstack:**
-- [ ] `storefront-next/src/extensions/<app-name>/target-config.json` exists
-- [ ] `storefront-next/src/extensions/<app-name>/index.ts` exists
-- [ ] All three locale directories present: `locales/en-US/`, `locales/en-GB/`, `locales/it-IT/`
+All checks must pass.
 
-**Backend-only or Fullstack:**
-- [ ] `cartridges/site_cartridges/<cartridge>/` exists with at least one cartridge
-- [ ] `cartridges/site_cartridges/<cartridge>/package.json` includes `"hooks"` field
-- [ ] `impex/install/` directory exists
-- [ ] `impex/uninstall/` directory exists for cleanup
-
-## Step 13: Clean up extracted directory
-
-After generating the ZIP, delete the extracted directory (it should NOT be committed):
+## Step 12: Clean up
 
 ```bash
 cd <domain>/<appName>/
 rm -rf commerce-<appName>-app-v<version>/
 ```
 
-**What should be in the repository:**
-```
-<domain>/<appName>/
-├── <appName>-v<version>.zip     ✅ COMMIT
-└── catalog.json                  ✅ COMMIT (new apps only)
+**Commit only:**
+- ✅ `<appName>-v<version>.zip`
+- ✅ `commerce-apps-manifest/manifest.json`
+- ✅ `commerce-apps-manifest/translations/*.json`
+- ✅ `catalog.json` (new apps only)
 
-commerce-apps-manifest/
-├── manifest.json                 ✅ COMMIT (updated entry)
-├── icons/
-│   └── <iconName>.png            ✅ AUTO-GENERATED by CI (do NOT manually add)
-└── translations/
-    ├── en-US.json                ✅ COMMIT (updated with app entry)
-    ├── de.json                   ✅ COMMIT (updated with app entry)
-    ├── fr.json                   ✅ COMMIT (updated with app entry)
-    └── ... (all locale files)    ✅ COMMIT (updated with app entry)
-```
-
-**Note on icons:** The `.github/workflows/update-catalog.yml` workflow automatically extracts icons from the ZIP file and adds them to `commerce-apps-manifest/icons/` when the PR is merged. Do NOT manually copy icons during packaging.
-
-**What should NOT be committed:**
-- ❌ `commerce-<appName>-app-v<version>/` (extracted directory)
-- ❌ `.DS_Store` or other junk files
+**Don't commit:**
+- ❌ Extracted directories
 - ❌ Old ZIP versions
-
-The extracted directory is only needed during development. Once packaged into a ZIP, it can be deleted.
+- ❌ Junk files

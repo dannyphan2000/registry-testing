@@ -23,19 +23,15 @@ If you're using Claude Code, several skills are available to streamline the cont
 - **`/validate-impex`** - Deep validation of impex files only (useful during development, also included in `/validate-app`)
 - **`/package-app`** - Package app into registry-ready ZIP (handles both new apps and version bumps)
 
-### Extraction & Comparison
-- **`/extract-app`** - Extract a commerce app ZIP for development or modification
-- **`/diff-versions`** - Compare two versions to see what changed (useful for code review and changelogs)
-
 ### Submission
-- **`/submit-pr`** - Guide through the PR submission process with proper formatting and checklist
+- **`/submit-app`** - Guide through the PR submission process with proper formatting and checklist
 
 **Typical workflow:**
 1. Start new app → `/scaffold-app`
 2. Build your app code and logic
 3. Package for registry → `/package-app`
 4. Validate before submitting → `/validate-app`
-5. Submit PR → `/submit-pr`
+5. Submit PR → `/submit-app`
 
 These skills automate many of the manual steps described below and help catch common issues early.
 
@@ -461,7 +457,7 @@ Before submitting your PR, please verify:
 - [ ] Old ZIP versions removed (if updating)
 
 ### CI Workflow Readiness
-- [ ] Ran `/validate-commerce-app` skill (if using Claude Code)
+- [ ] Ran `/validate-app` skill (if using Claude Code)
 - [ ] Tested ZIP extraction locally
 - [ ] Reviewed ZIP contents with `unzip -l`
 - [ ] Ready for `verify-zip.yml` CI workflow
@@ -515,7 +511,12 @@ zip -r [appName]-v[version].zip commerce-[appName]-app-v[version]/
 ### Missing Required Files
 **Problem:** CI can't find `commerce-app.json`, `services.xml`, or other required files.
 
-**Solution:** Extract the ZIP and verify all required files exist in the correct locations. Use `/extract-app` skill to extract and review structure.
+**Solution:** Extract the ZIP and verify all required files exist in the correct locations:
+```bash
+unzip -l [appName]-v[version].zip
+# Or extract fully to inspect:
+unzip [appName]-v[version].zip
+```
 
 ---
 
@@ -555,7 +556,7 @@ Thumbs.db
 ## Getting Help
 
 - **CI Failures:** Check GitHub Actions logs for specific error messages
-- **Validation Issues:** Use `/validate-commerce-app` skill for detailed diagnostics
+- **Validation Issues:** Use `/validate-app` skill for detailed diagnostics
 - **Questions:** Open a discussion or contact the registry maintainers
 
 

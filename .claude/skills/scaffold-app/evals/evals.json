@@ -5,7 +5,7 @@
       "id": 1,
       "eval_name": "ui-only-product-reviews-widget",
       "prompt": "Hey, I'm building a product reviews widget for our storefront. Just UI components - display star ratings and customer reviews on the PDP. No backend needed, pure frontend stuff. We're calling it ReviewHub from ReviewTech, version 1.0.0. Publisher: ReviewTech Inc at https://reviewtech.io. I want the reviews to show up right after the product details section if that's possible.",
-      "expected_output": "Should create UI-only structure with target-config.json (NOT plugin-config.json), using targetId field (NOT pluginId), TypeScript components with i18n via useTranslation(), tests with vi.mock outside describe blocks, index.ts barrel file, and nested locales/en-US/translations.json structure. Configuration uses useConfig() from @salesforce/storefront-next-runtime/config with PUBLIC__ prefix. No Salesforce copyright headers. Should suggest targetId like 'product.details.after'.",
+      "expected_output": "Should create UI-only structure with target-config.json (NOT plugin-config.json), using targetId field (NOT pluginId), TypeScript components with i18n via useTranslation(), tests with vi.mock outside describe blocks, index.ts barrel file, and nested locales/en-US/translations.json structure. Configuration uses useConfig() from @salesforce/storefront-next-runtime/config with PUBLIC__ prefix. Should suggest targetId like 'product.details.after'.",
       "files": [],
       "assertions": [
         {
@@ -71,14 +71,6 @@
         {
           "name": "configuration uses useConfig<AppConfig>() with direct property access",
           "description": "Must use useConfig<AppConfig>() with direct property access (appConfig.extension?.appName?.key || defaultValue), never .get() method. PUBLIC__app__extension__appName__key env vars"
-        },
-        {
-          "name": "Apache 2.0 copyright headers with ISV name",
-          "description": "All .ts/.tsx files must have Apache 2.0 license header with ISV/vendor name (not Salesforce) and current year"
-        },
-        {
-          "name": "'use client' directive after copyright header",
-          "description": "Components must have 'use client' directive after copyright header, before imports"
         },
         {
           "name": "cartridges directory does NOT exist",
@@ -635,43 +627,6 @@
     },
     {
       "id": 13,
-      "eval_name": "copyright-header-guidance",
-      "prompt": "I'm building a shipping rate calculator app - ShipFast from FastShip LLC, v1.0.0. Backend for calling shipping APIs, UI for displaying rates. Fullstack app, cartridge int_fastship_rates, service fastship.rates.api, shipping domain. Publisher: FastShip LLC at https://fastship.io. Do I need to add copyright headers to the files?",
-      "expected_output": "Should explain that Apache 2.0 copyright headers are REQUIRED for all SFNext .ts/.tsx files with ISV/vendor name (FastShip LLC) and current year (2026), not Salesforce. Should clarify registry is Salesforce-owned but individual apps are ISV-owned. Headers go at top of file, before 'use client' directive.",
-      "files": [],
-      "assertions": [
-        {
-          "name": "Apache 2.0 copyright headers required for SFNext files",
-          "description": "All .ts/.tsx files in storefront-next must have Apache 2.0 license header"
-        },
-        {
-          "name": "uses ISV name not Salesforce in headers",
-          "description": "Copyright line must use ISV/vendor name (FastShip LLC), not Salesforce"
-        },
-        {
-          "name": "explains ISV owns app copyright",
-          "description": "Should clarify these are third-party vendor apps - ISVs retain copyright"
-        },
-        {
-          "name": "copyright header before 'use client' directive",
-          "description": "Header must be first thing in file, before 'use client' and imports"
-        },
-        {
-          "name": "creates fullstack structure",
-          "description": "Both UI and backend components"
-        },
-        {
-          "name": "target-config.json with targetId",
-          "description": "UI uses correct extension format"
-        },
-        {
-          "name": "configuration system mentioned",
-          "description": "Should reference useConfig<AppConfig>() with direct property access, never .get() method"
-        }
-      ]
-    },
-    {
-      "id": 14,
       "eval_name": "domain-specific-hooks-shipping",
       "prompt": "Setting up a shipping integration with FedEx - backend only, no UI needed. Calculating shipping rates based on weight, dimensions, destination. App: fedex-shipping, cartridge int_fedex_ship, service fedex.shipping.api, v1.0.0, shipping domain. Publisher: FedEx, https://developer.fedex.com.",
       "expected_output": "Should configure hooks.json with shipping domain hooks (app.shipping.calculate). Should NOT create storefront-next. Backend-only with cartridges and impex.",
