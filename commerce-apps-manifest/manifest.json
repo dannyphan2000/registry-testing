@@ -65,43 +65,5 @@
             "provider": "custom"
         }
     ],
-    "address-verification": [
-        {
-            "id": "loqate-address-verification",
-            "name": "Loqate Address Verification",
-            "description": "Address Verification Application with GBG Loqate",
-            "iconName": "loqate.png",
-            "domain": "address-verification",
-            "type": "app",
-            "provider": "thirdParty",
-            "version": "2.1.0",
-            "zip": "loqate-address-verification-v2.1.0.zip",
-            "sha256": "ea5105447d201ab4121ae5298f28f1fe9317892bceb87b0d760f8253ab16bdf3"
-        },
-        {
-            "id": "experian-address-verification",
-            "name": "Experian Data Quality Address Verification",
-            "description": "Address Verification Application with Experian Data Quality",
-            "iconName": "experian.png",
-            "domain": "address-verification",
-            "type": "app",
-            "provider": "thirdParty",
-            "version": "2.1.0",
-            "zip": "loqate-address-verification-v2.1.0.zip",
-            "sha256": "ea5105447d201ab4121ae5298f28f1fe9317892bceb87b0d760f8253ab16bdf3"
-        },
-        {
-            "id": "postgrid-address-verification",
-            "name": "Postgrid Address Verification",
-            "description": "Address Verification Application with Postgrid",
-            "iconName": "postgrid.png",
-            "domain": "address-verification",
-            "type": "app",
-            "provider": "thirdParty",
-            "version": "2.1.0",
-            "zip": "loqate-address-verification-v2.1.0.zip",
-            "sha256": "ea5105447d201ab4121ae5298f28f1fe9317892bceb87b0d760f8253ab16bdf3"
-        }
-    ],
     "additionalFeature": []
 }
