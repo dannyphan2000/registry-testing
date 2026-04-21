@@ -65,5 +65,19 @@
             "provider": "custom"
         }
     ],
+    "address-verification": [
+        {
+            "id": "loqate-address-verification",
+            "name": "Loqate Address Verification",
+            "description": "Address Verification Application with GBG Loqate",
+            "iconName": "loqate.png",
+            "domain": "address-verification",
+            "type": "app",
+            "provider": "thirdParty",
+            "version": "1.0.0",
+            "zip": "loqate-address-verification-v1.0.0.zip",
+            "sha256": "0519a9e53d1eb79c318b76444c081f498172bd15cfeb5ed1757f0c650227c45e"
+        }
+    ],
     "additionalFeature": []
 }
